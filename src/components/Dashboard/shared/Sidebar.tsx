@@ -3,24 +3,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
   Calendar,
   NotebookText,
-  CircleDollarSign,
   Ship,
   LogOut,
   HardDrive,
   MessageCircleMore,
   ShoppingBag,
   ShoppingBasket,
-  Users,
   Send,
   Settings,
 } from "lucide-react";
 import { useState } from "react";
-
 import { signOut } from "next-auth/react";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -102,7 +97,7 @@ export default function Sidebar() {
                 "flex items-center gap-3 rounded-lg p-3 text-base leading-[150%] tracking-[0%] font-semibold transition-colors",
                 isActive
                   ? "bg-[#F8F9FA] text-[#65A30D] font-bold text-[16px]"
-                  : "text-[#65A30D] hover:bg-[#F8F9FA] hover:text-[#65A30D] font-normal"
+                  : "text-[#65A30D] hover:bg-[#F8F9FA] hover:text-[#65A30D] font-normal",
               )}
             >
               <item.icon className="h-5 w-5" />
