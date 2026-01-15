@@ -15,6 +15,7 @@ import {
   ShoppingBasket,
   Users,
   Send,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,7 +28,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -40,7 +40,7 @@ const navigation = [
   { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
   { name: "Social Accounts", href: "/social-accounts", icon: Send },
   { name: "Subscription", href: "/subscription", icon: Calendar },
-  { name: "Settings", href: "/settings", icon: CircleDollarSign },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -102,7 +102,7 @@ export default function Sidebar() {
                 "flex items-center gap-3 rounded-lg p-3 text-base leading-[150%] tracking-[0%] font-semibold transition-colors",
                 isActive
                   ? "bg-[#F8F9FA] text-[#65A30D] font-bold text-[16px]"
-                  : "text-[#65A30D] hover:bg-[#F8F9FA] hover:text-[#65A30D] font-normal",
+                  : "text-[#65A30D] hover:bg-[#F8F9FA] hover:text-[#65A30D] font-normal"
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -114,16 +114,17 @@ export default function Sidebar() {
 
       {/* Logout */}
       <div className="border-t border-gray-200 p-3">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full justify-start gap-3 h-12 px-4 cursor-pointer rounded-lg font-medium text-[#e5102e] hover:bg-[#feecee] hover:text-[#e5102e] transition-all duration-200"
+          onClick={() => setOpen(true)}
+        >
+          <LogOut className="h-5 w-5" />
+          Log Out
+        </Button>
+
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 h-12 px-4 cursor-pointer rounded-lg font-medium text-[#e5102e] hover:bg-[#feecee] hover:text-[#e5102e] transition-all duration-200"
-            >
-              <LogOut className="h-5 w-5" />
-              Log Out
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Confirm Logout</DialogTitle>

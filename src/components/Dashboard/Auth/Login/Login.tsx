@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -31,6 +31,10 @@ export default function Login() {
       });
       // If API returns "success: true"
       if (result?.ok) {
+        const session = await getSession();
+        if (session?.accessToken) {
+          localStorage.setItem("accessToken", session.accessToken);
+        }
         toast.success("Logged in successfully!");
         router.push("/");
       } else {
