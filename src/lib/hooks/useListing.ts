@@ -1,7 +1,11 @@
 // src/lib/hooks/useListing.ts
 
-import { useQuery } from "@tanstack/react-query";
-import { getAllListing } from "../services/listingService";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  getAllListing,
+  ListingsResponse,
+  uploadListingManual,
+} from "../services/listingService";
 
 export function useListing() {
   return useQuery({
@@ -11,5 +15,12 @@ export function useListing() {
     },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
+  });
+}
+
+// Upload Listing Manual
+export function useUploadListingManual() {
+  return useMutation<ListingsResponse, Error, FormData>({
+    mutationFn: (data) => uploadListingManual(data),
   });
 }

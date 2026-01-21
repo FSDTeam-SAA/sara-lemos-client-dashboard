@@ -4,7 +4,7 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Dashboard Template",
+  title: "Client Dashboard",
   description:
     "A modern dashboard template built with Next.js and Tailwind CSS.",
 };

@@ -3,8 +3,8 @@ import "../globals.css";
 // import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Dashboard Auth",
-  description: "Authentication Layout for Dashboard",
+  title: "Client Auth",
+  description: "Authentication Layout for Client",
 };
 
 export default function RootLayout({

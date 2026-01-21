@@ -1,34 +1,70 @@
- 
+"use client";
+
+import { Upload } from "lucide-react";
+import Link from "next/link";
+
 export default function UploadListing() {
   return (
-    <div className='flex justify-center items-center'>
-          <div className="max-w-3xl bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center">
-        {/* Heading */}
-        <h1 className="text-3xl font-bold text-[#086646] mb-4">
-          Upload Listing
-        </h1>
+    <div className="flex px-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6  w-full  h-[250px] ">
+        <Link href="/upload-listing/upload-listing-document">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10  ">
+            {/* Icon */}
+            <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#65A30D1A] mb-6">
+              <Upload className="text-[#65A30D]" size={22} />
+            </div>
 
-        {/* Subheading */}
-        <h2 className="text-xl font-semibold text-gray-800 mb-3">
-          Welcome Back!
-        </h2>
+            {/* Title */}
+            <h2 className="text-xl font-semibold text-[#65A30D] mb-3">
+              Upload Document
+            </h2>
 
-        {/* Body Text */}
-        <p className="text-gray-700 text-base leading-relaxed mb-2">
-          This page gives you a high-level view of your admin panel and its
-          core features. All main functionality is operational and ready to use.
-        </p>
+            {/* Description */}
+            <p className="text-sm text-gray-400 leading-relaxed max-w-3xl mb-10">
+              Upload a PDF or Word document with yacht specifications. Our AI
+              will automatically extract all the details.
+            </p>
 
-        <p className="text-gray-600 text-sm mb-4">
-          Additional features and improvements are currently under development.
-          Please allow some time as we continue to enhance your experience.
-        </p>
+            {/* Badges */}
+            <div className="flex items-center gap-6">
+              <span className="text-sm font-medium text-[#65A30D]">
+                Recommended
+              </span>
+              <span className="text-sm font-medium text-[#65A30D] bg-[#65A30D1A] px-4 py-1.5 rounded-lg">
+                AI-Powered
+              </span>
+            </div>
+          </div>
+        </Link>
 
-        {/* Status Badge */}
-        <div className="mt-5 inline-flex items-center rounded-lg bg-[#ECF3EC] px-4 py-2 text-sm font-semibold text-[#086646]">
-          🚧 Work in Progress
-        </div>
+        {/* ===== Manual Entry Card ===== */}
+        <Link href="/upload-listing/upload-listing-manual">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10  ">
+            {/* Icon */}
+            <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#65A30D1A] mb-6">
+              <Upload className="text-[#65A30D]" size={22} />
+            </div>
+
+            {/* Title */}
+            <h2 className="text-xl font-semibold text-[#65A30D] mb-3">
+              Manual Entry
+            </h2>
+
+            {/* Description */}
+            <p className="text-sm text-gray-400 leading-relaxed max-w-3xl mb-10">
+              Fill out the yacht listing form manually with all the
+              specifications and details.
+            </p>
+
+            {/* Badges */}
+            <div className="flex items-center gap-6">
+              <span className="text-sm font-medium text-[#65A30D]">
+                Traditional methodd
+              </span>
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
-  )
+  );
 }
