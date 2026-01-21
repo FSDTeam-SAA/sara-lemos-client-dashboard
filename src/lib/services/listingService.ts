@@ -71,3 +71,20 @@ export const getAllListing = async (): Promise<ListingsResponse> => {
 
   return response.data;
 };
+
+// Upload Listing Manual
+export const uploadListingManual = async (
+  data: FormData,
+): Promise<ListingsResponse> => {
+  const response = await axiosInstance.post<ListingsResponse>(
+    "/listing/extract-pdf",
+    data,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data;
+};
