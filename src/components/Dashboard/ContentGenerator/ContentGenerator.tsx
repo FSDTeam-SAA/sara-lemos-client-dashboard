@@ -1,9 +1,9 @@
-import React from 'react'
+import React from "react";
 
 export default function ContentGenerator() {
   return (
-    <div className='flex justify-center items-center'>
-          <div className="max-w-3xl bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center">
+    <div className="flex justify-center items-center">
+      <div className="max-w-3xl bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center">
         {/* Heading */}
         <h1 className="text-3xl font-bold text-[#086646] mb-4">
           Content Generator
@@ -16,8 +16,8 @@ export default function ContentGenerator() {
 
         {/* Body Text */}
         <p className="text-gray-700 text-base leading-relaxed mb-2">
-          This page gives you a high-level view of your admin panel and its
-          core features. All main functionality is operational and ready to use.
+          This page gives you a high-level view of your admin panel and its core
+          features. All main functionality is operational and ready to use.
         </p>
 
         <p className="text-gray-600 text-sm mb-4">
@@ -31,5 +31,5 @@ export default function ContentGenerator() {
         </div>
       </div>
     </div>
-  )
+  );
 }

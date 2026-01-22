@@ -33,21 +33,11 @@ export default function useAuth() {
   };
 
   // Handle OTP verification
-  const handleVerifyOtp = async (otp: string) => {
+  const handleVerifyOtp = async (otp: string, email: string) => {
     setLoading(true);
     setError(null);
 
-    // Extract token from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromURL = urlParams.get("token") || "";
-
-    if (!tokenFromURL) {
-      setError("Invalid or missing token");
-      setLoading(false);
-      return { success: false, message: "No token found in URL" };
-    }
-
-    const res = await verifyOtp({ otp }, tokenFromURL);
+    const res = await verifyOtp({ otp, email });
 
     if (res.success) {
       setResult(res.data);
@@ -60,20 +50,11 @@ export default function useAuth() {
   };
 
   //  NEW — Resend OTP
-  const handleResendOtp = async () => {
+  const handleResendOtp = async (email: string) => {
     setLoading(true);
     setError(null);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromURL = urlParams.get("token") || "";
-
-    if (!tokenFromURL) {
-      setError("Invalid or missing token");
-      setLoading(false);
-      return { success: false, message: "No token found in URL" };
-    }
-
-    const res = await resendForgotOtp(tokenFromURL);
+    const res = await resendForgotOtp(email);
 
     if (res.success) {
       setResult(res.data);
@@ -86,21 +67,11 @@ export default function useAuth() {
   };
 
   // Reset Password hook
-  const handleResetPassword = async (newPassword: string) => {
+  const handleResetPassword = async (newPassword: string, email: string) => {
     setLoading(true);
     setError(null);
 
-    // Get token from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromURL = urlParams.get("token") || "";
-
-    if (!tokenFromURL) {
-      setError("Invalid or missing token");
-      setLoading(false);
-      return { success: false, message: "No token found in URL" };
-    }
-
-    const res = await resetPassword(newPassword, tokenFromURL);
+    const res = await resetPassword({ newPassword, email });
 
     if (res.success) {
       setResult(res.data);
