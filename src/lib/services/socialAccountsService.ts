@@ -10,3 +10,14 @@ export const connectSocialAccounts = async () => {
     throw error;
   }
 };
+
+// get user id by user data in social accounts
+export const getUserIdByUserData = async (userId: string) => {
+  console.log(userId);
+  try {
+    const response = await axiosInstance.get(`/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

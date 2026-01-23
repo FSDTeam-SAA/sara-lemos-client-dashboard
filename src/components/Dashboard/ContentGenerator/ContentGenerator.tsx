@@ -1,35 +1,30 @@
-import React from "react";
+import { Upload } from "lucide-react";
+import Link from "next/link";
 
 export default function ContentGenerator() {
   return (
-    <div className="flex justify-center items-center">
-      <div className="max-w-3xl bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center">
-        {/* Heading */}
-        <h1 className="text-3xl font-bold text-[#086646] mb-4">
-          Content Generator
-        </h1>
+    <div className="flex justify-center items-center text-center">
+      <Link href="/content-generator/create-ad">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10 hover:bg-gray-50 text-center ">
+          <div className="flex justify-center">
+            {/* Icon */}
+            <div className="w-12 h-12 flex items-center justify-center border rounded-xl bg-[#65A30D1A] mb-6">
+              <Upload className="text-[#65A30D]" size={22} />
+            </div>
+          </div>
+          {/* Title */}
+          <h2 className="text-xl font-semibold text-[#65A30D] mb-3">
+            Create Ad
+          </h2>
 
-        {/* Subheading */}
-        <h2 className="text-xl font-semibold text-gray-800 mb-3">
-          Welcome Back!
-        </h2>
-
-        {/* Body Text */}
-        <p className="text-gray-700 text-base leading-relaxed mb-2">
-          This page gives you a high-level view of your admin panel and its core
-          features. All main functionality is operational and ready to use.
-        </p>
-
-        <p className="text-gray-600 text-sm mb-4">
-          Additional features and improvements are currently under development.
-          Please allow some time as we continue to enhance your experience.
-        </p>
-
-        {/* Status Badge */}
-        <div className="mt-5 inline-flex items-center rounded-lg bg-[#ECF3EC] px-4 py-2 text-sm font-semibold text-[#086646]">
-          🚧 Work in Progress
+          {/* Description */}
+          <p className="text-sm text-gray-400 leading-relaxed max-w-3xl mb-10">
+            Generate high-converting Facebook and Instagram ads using AI.
+            Provide a few details about your listing and let our AI craft
+            compelling ad copy and visuals.
+          </p>
         </div>
-      </div>
+      </Link>
     </div>
   );
 }

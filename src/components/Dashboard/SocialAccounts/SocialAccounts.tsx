@@ -47,16 +47,13 @@ export default function SocialAccounts() {
     setFacebookStatus((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      const res = await connectSocialAccounts();
-      const fbUrl = res?.data?.url;
+      const fbUrl = await connectSocialAccounts();
 
       console.log("🚀 ~ handleConnectFacebook ~ fbUrl:", fbUrl);
 
       if (!fbUrl) {
         newWindow.close();
-        throw new Error(
-          res?.data?.message || "Facebook redirect URL not found",
-        );
+        throw new Error("Facebook redirect URL not found");
       }
 
       // ✅ Redirect the already opened tab
@@ -91,16 +88,13 @@ export default function SocialAccounts() {
     setInstagramStatus((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      const res = await connectSocialAccounts();
-      const igUrl = res?.data?.url;
+      const igUrl = await connectSocialAccounts();
 
       console.log("🚀 ~ handleConnectInstagram ~ igUrl:", igUrl);
 
       if (!igUrl) {
         newWindow.close();
-        throw new Error(
-          res?.data?.message || "Instagram redirect URL not found",
-        );
+        throw new Error("Instagram redirect URL not found");
       }
 
       // ✅ Redirect the already opened tab
@@ -183,7 +177,7 @@ export default function SocialAccounts() {
               <button
                 onClick={handleConnectFacebook}
                 disabled={facebookStatus.isLoading}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#1877F2] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-all shadow-sm"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#1877F2] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
               >
                 <Link2 size={16} />
                 {facebookStatus.isLoading
@@ -260,7 +254,7 @@ export default function SocialAccounts() {
             </div>
 
             {instagramStatus.isConnected && (
-              <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
+              <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700 cursor-pointer">
                 <CheckCircle2 size={14} />
                 Connected
               </span>
@@ -272,7 +266,7 @@ export default function SocialAccounts() {
               <button
                 onClick={handleConnectInstagram}
                 disabled={instagramStatus.isLoading}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#65A30D] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-all shadow-sm"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#65A30D] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
               >
                 <Link2 size={16} />
                 {instagramStatus.isLoading
@@ -320,12 +314,18 @@ export default function SocialAccounts() {
         <div className="rounded-xl border border-[#65A30D]/40 bg-[#F7FCEB] p-5 space-y-2">
           <h3 className="font-semibold text-[#65A30D]">Need Help?</h3>
           <p className="text-sm text-gray-600">
-            <strong>Connection Issues:</strong> Make sure you&apos;re logged
-            into the correct account and have admin access to your pages.
+            <strong className="text-[#65A30D]">Connection Issues:</strong> Make
+            sure you&apos;re logged into the correct account and have admin
+            access to your pages.
           </p>
           <p className="text-sm text-gray-600">
-            <strong>Permissions:</strong> You can revoke access anytime from
-            Facebook or Instagram settings.
+            <strong className="text-[#65A30D]">Instagram Requirements:</strong>{" "}
+            Instagram posting requires a Facebook Business Manager account and
+            an Instagram Business profile linked to your Facebook Page.
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong className="text-[#65A30D]">Permissions:</strong> You can
+            revoke access at any time from your Facebook or Instagram settings.
           </p>
         </div>
       </div>
