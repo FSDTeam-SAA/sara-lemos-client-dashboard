@@ -21,7 +21,15 @@ export default function ResetPassword() {
       return;
     }
 
-    const res = await handleResetPassword(newPassword);
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email") || "";
+
+    if (!email) {
+      toast.error("Email is missing from URL!");
+      return;
+    }
+
+    const res = await handleResetPassword(newPassword, email);
     if (res.success) {
       toast.success("Password reset successfully!");
       router.push("/login");

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useAuth from "@/lib/hooks/useAuth";
+import { toast } from "sonner";
 
 export default function ForgetPassword() {
   const [email, setEmail] = useState("");
@@ -17,15 +18,15 @@ export default function ForgetPassword() {
   const handleSendCode = async () => {
     const response = await handleForgotPassword(email);
 
-    if (response.success && response.data?.data?.accessToken) {
-      // Get the accessToken
-      const accessToken = response.data.data.accessToken;
-      router.push(`/verify-otp?token=${encodeURIComponent(accessToken)}`);
+    if (response.success) {
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+    } else {
+      toast.error(response.data.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf8f6] p-4">
+    <div className="min-h-screen flex items-center justify-center   p-4">
       {" "}
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg px-8 py-10">
         {" "}

@@ -43,17 +43,21 @@ export default function VerifyOTP() {
   // Verify OTP
   const handleVerify = async () => {
     const otpCode = otp.join("");
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email") || "";
 
-    const res = await handleVerifyOtp(otpCode);
+    if (!email) {
+      toast.error("Email is missing from URL");
+      return;
+    }
+
+    const res = await handleVerifyOtp(otpCode, email);
 
     if (res?.success) {
       toast.success("OTP verified successfully!");
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get("token");
-
       setTimeout(() => {
-        router.push(`/reset-password?token=${encodeURIComponent(token || "")}`);
+        router.push(`/reset-password?email=${encodeURIComponent(email)}`);
       }, 1000);
     } else {
       toast.error(res?.message || "Failed to verify OTP");
@@ -64,7 +68,15 @@ export default function VerifyOTP() {
   const handleResend = async () => {
     if (!canResend) return;
 
-    const res = await handleResendOtp();
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email") || "";
+
+    if (!email) {
+      toast.error("Email is missing from URL");
+      return;
+    }
+
+    const res = await handleResendOtp(email);
 
     if (res?.success) {
       toast.success("OTP sent again successfully ✔");
@@ -77,7 +89,7 @@ export default function VerifyOTP() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF8F6]">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="bg-white w-full max-w-xl rounded-2xl shadow-md p-10">
         <div className="text-center">
           <h2 className="text-3xl font-semibold text-[#0B3B36] mb-4">

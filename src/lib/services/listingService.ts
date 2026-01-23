@@ -72,7 +72,7 @@ export const getAllListing = async (): Promise<ListingsResponse> => {
   return response.data;
 };
 
-// Upload Listing Manual
+// Upload Listing PDF
 export const uploadListingManual = async (
   data: FormData,
 ): Promise<ListingsResponse> => {
@@ -80,9 +80,21 @@ export const uploadListingManual = async (
     "/listing/extract-pdf",
     data,
     {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      // Headers will be set automatically by Axios when passing FormData
+    },
+  );
+
+  return response.data;
+};
+
+export const createListingManual = async (
+  data: FormData,
+): Promise<ListingsResponse> => {
+  const response = await axiosInstance.post<ListingsResponse>(
+    "/listing/create",
+    data,
+    {
+      // Headers will be set automatically by Axios when passing FormData
     },
   );
 
