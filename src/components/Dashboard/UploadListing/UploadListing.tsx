@@ -8,7 +8,7 @@ export default function UploadListing() {
     <div className="flex px-4 w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6  w-full  h-[250px] ">
         <Link href="/upload-listing/upload-listing-document">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10  ">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10 hover:bg-gray-50 ">
             {/* Icon */}
             <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#65A30D1A] mb-6">
               <Upload className="text-[#65A30D]" size={22} />
@@ -39,7 +39,7 @@ export default function UploadListing() {
 
         {/* ===== Manual Entry Card ===== */}
         <Link href="/upload-listing/upload-listing-manual">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10  ">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10   hover:bg-gray-50">
             {/* Icon */}
             <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#65A30D1A] mb-6">
               <Upload className="text-[#65A30D]" size={22} />

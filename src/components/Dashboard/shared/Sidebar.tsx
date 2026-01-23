@@ -30,10 +30,10 @@ const navigation = [
   { name: "Dashboard Overview", href: "/", icon: HardDrive },
   { name: "Listings", href: "/listings", icon: Ship },
   { name: "Upload Listing", href: "/upload-listing", icon: ShoppingBasket },
+  { name: "Social Accounts", href: "/social-accounts", icon: Send },
   { name: "Content Generator", href: "/content-generator", icon: NotebookText },
   { name: "Saved Drafts", href: "/saved-drafts", icon: ShoppingBag },
   { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
-  { name: "Social Accounts", href: "/social-accounts", icon: Send },
   { name: "Subscription", href: "/subscription", icon: Calendar },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

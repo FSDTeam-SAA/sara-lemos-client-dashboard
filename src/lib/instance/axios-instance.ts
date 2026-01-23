@@ -8,29 +8,30 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 export const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE,
   timeout: 30000,
-  headers: { "Content-Type": "application/json" },
+  // Let axios handle Content-Type automatically based on the request body
 });
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      // 1) If verify-otp gives custom token → use that instead
-      if (config.headers?._customToken) {
-        config.headers.Authorization = `Bearer ${config.headers._customToken}`;
-        delete config.headers._customToken;
-        return config;
+      if (!config.headers) return config;
+
+      // 1) Handle token
+      const session = await getSession();
+      if (session && "accessToken" in session) {
+        config.headers["Authorization"] = `Bearer ${session.accessToken}`;
       }
 
-      // 2) Otherwise use NextAuth session token
-      const session = await getSession();
-      if (session && "accessToken" in session && config.headers) {
-        config.headers.Authorization = `Bearer ${session.accessToken}`;
+      // 2) Handle custom token
+      if (config.headers["_customToken"]) {
+        config.headers["Authorization"] =
+          `Bearer ${config.headers["_customToken"]}`;
+        delete config.headers["_customToken"];
       }
     } catch (error) {
-      console.error("Failed to get session:", error);
+      console.error("Axios Interceptor Error:", error);
     }
-
     return config;
   },
   (error) => Promise.reject(error),

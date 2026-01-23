@@ -1,8 +1,10 @@
 "use client";
 
+import axiosInstance from "@/lib/instance/axios-instance";
+import axios from "axios";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 type FormState = {
   yachtName: string;
@@ -37,8 +39,8 @@ type FormState = {
   grossTons: string;
   vatPaid: boolean;
 
-  coverImage: File | null;
-  coverImagePreview: string;
+  images: File[];
+  imagePreviews: { file: File; url: string }[];
 
   description: string;
 
@@ -59,7 +61,20 @@ function isPositiveNumber(v: string) {
   return Number.isFinite(n) && n >= 0;
 }
 
+/** ✅ Prevent "Cannot convert object to primitive value" in alerts/logs */
+function safeToString(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value instanceof Error) return value.message;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 export default function UploadListingManual() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [form, setForm] = useState<FormState>({
     yachtName: "",
     yachtType: "",
@@ -93,8 +108,8 @@ export default function UploadListingManual() {
     grossTons: "",
     vatPaid: false,
 
-    coverImage: null,
-    coverImagePreview: "",
+    images: [],
+    imagePreviews: [],
 
     description: "",
 
@@ -146,7 +161,7 @@ export default function UploadListingManual() {
     if (!form.engineMake.trim()) e.engineMake = "Engine make is required";
     if (!form.engineModel.trim()) e.engineModel = "Engine model is required";
 
-    if (!form.coverImage) e.coverImage = "Cover image is required";
+    if (form.images.length === 0) e.images = "At least one image is required";
 
     if (!form.yearBuilt.trim()) {
       e.yearBuilt = "Year built is required";
@@ -181,123 +196,122 @@ export default function UploadListingManual() {
     return e;
   };
 
-  const onSubmit = (ev: React.FormEvent) => {
+  /** ✅ Optional: log FormData entries for debugging */
+  const logFormData = (fd: FormData) => {
+    // NOTE: Avoid logging big files in prod
+    for (const [k, v] of fd.entries()) {
+      if (v instanceof File) {
+        console.log(
+          `${k}: [File] name=${v.name} size=${v.size} type=${v.type}`,
+        );
+      } else {
+        console.log(`${k}: ${v}`);
+      }
+    }
+  };
+
+  const onSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
+
     const e = validate();
     setErrors(e);
     if (Object.values(e).some(Boolean)) return;
 
-    // ✅ POSTMAN LIKE JSON PAYLOAD (same key names)
-    const payload = {
-      yachtName: form.yachtName,
-      builder: form.builder,
-      yachtType: form.yachtType,
-      model: form.model,
-      location: form.location,
+    const fd = new FormData();
+    // Basic fields
+    fd.append("yachtName", form.yachtName);
+    fd.append("builder", form.builder);
+    fd.append("yachtType", form.yachtType);
+    fd.append("model", form.model);
+    fd.append("location", form.location);
+    fd.append("guestCapacity", String(Number(form.guestCapacity)));
+    fd.append("Price", String(Number(form.price)));
+    fd.append("bathRooms", String(Number(form.bathrooms)));
+    fd.append("bedRooms", String(Number(form.bedrooms)));
+    fd.append("cabins", String(Number(form.cabins)));
+    fd.append("crew", String(Number(form.crew)));
+    fd.append("guests", String(Number(form.guests)));
 
-      guestCapacity: Number(form.guestCapacity),
-
-      // Postman: Price (capital P)
-      Price: Number(form.price),
-
-      // Postman: bedRooms / bathRooms
-      bedRooms: Number(form.bedrooms),
-      bathRooms: Number(form.bathrooms),
-
-      cabins: Number(form.cabins),
-      crew: Number(form.crew),
-      guests: Number(form.guests),
-
-      // Postman: constructions object
-      constructions: {
+    // constructions (JSON string as per screenshot)
+    fd.append(
+      "constructions",
+      JSON.stringify({
         GRP: form.construction === "GRP",
         Steel: form.construction === "Steel",
         Aluminum: form.construction === "Aluminum",
         Wood: form.construction === "Wood",
         Composite: form.construction === "Composite",
-      },
+      }),
+    );
 
-      yearBuilt: Number(form.yearBuilt),
+    fd.append("yearBuilt", String(Number(form.yearBuilt)));
 
-      // Postman: value + unit
-      lengthOverall: {
+    // lengthOverall (JSON string)
+    fd.append(
+      "lengthOverall",
+      JSON.stringify({
         value: Number(form.lengthOverall),
         unit: form.lengthUnit,
-      },
-      beam: {
+      }),
+    );
+
+    // beam (JSON string)
+    fd.append(
+      "beam",
+      JSON.stringify({
         value: Number(form.beam),
         unit: form.beamUnit,
-      },
-      draft: {
+      }),
+    );
+
+    // draft (JSON string)
+    fd.append(
+      "draft",
+      JSON.stringify({
         value: Number(form.draft),
         unit: form.draftUnit,
-      },
+      }),
+    );
 
-      grossTons: Number(form.grossTons),
+    fd.append("grossTons", String(Number(form.grossTons)));
+    fd.append("engineMake", form.engineMake);
+    fd.append("engineModel", form.engineModel);
 
-      engineMake: form.engineMake,
-      engineModel: form.engineModel,
-      description: form.description,
+    // images array
+    form.images.forEach((file) => fd.append("images", file));
 
-      // optional (you had vatPaid in UI)
-      vatPaid: form.vatPaid,
-
-      // example like postman
-      isActive: true,
-    };
-
-    console.log("✅ JSON Payload (Postman keys):", payload);
-    console.log("✅ Image File (images):", form.coverImage);
-
-    // ✅ POSTMAN LIKE FORMDATA (images + same keys)
-    const fd = new FormData();
-    fd.append("yachtName", payload.yachtName);
-    fd.append("builder", payload.builder);
-    fd.append("yachtType", payload.yachtType);
-    fd.append("model", payload.model);
-    fd.append("location", payload.location);
-
-    fd.append("guestCapacity", String(payload.guestCapacity));
-    fd.append("Price", String(payload.Price));
-    fd.append("bedRooms", String(payload.bedRooms));
-    fd.append("bathRooms", String(payload.bathRooms));
-
-    fd.append("cabins", String(payload.cabins));
-    fd.append("crew", String(payload.crew));
-    fd.append("guests", String(payload.guests));
-
-    fd.append("constructions", JSON.stringify(payload.constructions));
-    fd.append("yearBuilt", String(payload.yearBuilt));
-
-    fd.append("lengthOverall", JSON.stringify(payload.lengthOverall));
-    fd.append("beam", JSON.stringify(payload.beam));
-    fd.append("draft", JSON.stringify(payload.draft));
-
-    fd.append("grossTons", String(payload.grossTons));
-    fd.append("engineMake", payload.engineMake);
-    fd.append("engineModel", payload.engineModel);
-    fd.append("description", payload.description);
-
-    fd.append("vatPaid", String(payload.vatPaid));
+    fd.append("description", form.description);
     fd.append("isActive", "true");
 
-    // ✅ Postman: images (file)
-    if (form.coverImage) fd.append("images", form.coverImage);
+    setIsSubmitting(true);
+    try {
+      // ✅ Axios will set the correct boundary automatically when Content-Type is OMITTED
+      const res = await axiosInstance.post("/listing/create", fd);
+      console.log("🚀 SUCCESS:", res.data);
+      alert("Submitted Successfully ✅");
+      onCancel();
+    } catch (err) {
+      console.error("❌ SUBMISSION FAILED:", err);
 
-    console.log("✅ FormData Entries:");
-    for (const [k, v] of fd.entries()) {
-      console.log(k, v);
+      // ✅ SAFE: message can be object (validation errors), stringify it
+      let msg = "Request failed";
+      if (axios.isAxiosError(err)) {
+        msg = err?.response?.data?.message ?? err?.message ?? msg;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      alert(`Submission Failed: ${safeToString(msg)}`);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    alert("Submitted ✅ Check your console log");
   };
 
-  const clearPreviewUrl = () => {
-    if (form.coverImagePreview) URL.revokeObjectURL(form.coverImagePreview);
+  const clearPreviewUrls = () => {
+    form.imagePreviews.forEach((p) => URL.revokeObjectURL(p.url));
   };
 
   const onCancel = () => {
-    clearPreviewUrl();
+    clearPreviewUrls();
 
     setForm((p) => ({
       ...p,
@@ -325,8 +339,8 @@ export default function UploadListingManual() {
       status: "",
       grossTons: "",
       vatPaid: false,
-      coverImage: null,
-      coverImagePreview: "",
+      images: [],
+      imagePreviews: [],
       description: "",
       engineMake: "",
       engineModel: "",
@@ -747,7 +761,7 @@ export default function UploadListingManual() {
             <label
               htmlFor="coverImage"
               className={`mt-2 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white p-10 text-center transition
-                ${errors.coverImage ? "border-red-300" : "border-gray-200"}
+                ${errors.images ? "border-red-300" : "border-gray-200"}
                 hover:border-[#65A30D]/50 hover:bg-[#65A30D]/[0.03]
               `}
             >
@@ -776,63 +790,103 @@ export default function UploadListingManual() {
               </p>
 
               <span className="mt-4 inline-flex items-center justify-center rounded-md bg-[#65A30D] px-6 py-2 text-sm font-semibold text-white hover:bg-[#5a8f0c] transition">
-                Select Image
+                Select Images
               </span>
 
-              {form.coverImage && (
+              {form.images.length > 0 && (
                 <p className="mt-4 text-xs text-gray-500">
-                  Selected:{" "}
-                  <span className="font-medium">{form.coverImage.name}</span>
+                  <span className="font-medium">{form.images.length}</span>{" "}
+                  images selected
                 </p>
               )}
-
-              {form.coverImagePreview && (
-                <div className="mt-4 w-full max-w-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={form.coverImagePreview}
-                    alt="preview"
-                    className="w-full h-40 object-cover rounded-md border border-gray-200"
-                  />
-                </div>
-              )}
             </label>
+
+            {form.imagePreviews.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {form.imagePreviews.map((preview, idx) => (
+                  <div key={idx} className="relative group aspect-square">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={preview.url}
+                      alt={`preview ${idx}`}
+                      className="w-full h-full object-cover rounded-md border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        URL.revokeObjectURL(preview.url);
+                        const newFiles = form.images.filter(
+                          (_, i) => i !== idx,
+                        );
+                        const newPreviews = form.imagePreviews.filter(
+                          (_, i) => i !== idx,
+                        );
+                        setForm((prev) => ({
+                          ...prev,
+                          images: newFiles,
+                          imagePreviews: newPreviews,
+                        }));
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition shadow-sm"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      >
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <input
               id="coverImage"
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
+                const files = Array.from(e.target.files || []);
+                if (files.length === 0) return;
 
-                if (file.size > 5 * 1024 * 1024) {
+                const validFiles: File[] = [];
+                const newPreviews: { file: File; url: string }[] = [];
+
+                files.forEach((file) => {
+                  if (file.size <= 5 * 1024 * 1024) {
+                    validFiles.push(file);
+                    newPreviews.push({
+                      file,
+                      url: URL.createObjectURL(file),
+                    });
+                  }
+                });
+
+                if (validFiles.length < files.length) {
                   setErrors((prev) => ({
                     ...prev,
-                    coverImage: "Image must be under 5MB",
+                    images: "Some images were over 5MB and skipped",
                   }));
-                  return;
+                } else {
+                  setErrors((prev) => ({ ...prev, images: "" }));
                 }
 
-                if (form.coverImagePreview)
-                  URL.revokeObjectURL(form.coverImagePreview);
-
-                const previewUrl = URL.createObjectURL(file);
                 setForm((prev) => ({
                   ...prev,
-                  coverImage: file,
-                  coverImagePreview: previewUrl,
+                  images: [...prev.images, ...validFiles],
+                  imagePreviews: [...prev.imagePreviews, ...newPreviews],
                 }));
-
-                setErrors((prev) => ({ ...prev, coverImage: "" }));
               }}
             />
 
-            {errors.coverImage && (
-              <p className="mt-1 text-[11px] text-red-500">
-                {errors.coverImage}
-              </p>
+            {errors.images && (
+              <p className="mt-1 text-[11px] text-red-500">{errors.images}</p>
             )}
           </div>
 
@@ -897,16 +951,17 @@ export default function UploadListingManual() {
             <button
               type="button"
               onClick={onCancel}
-              className="h-10 min-w-[110px] rounded-md border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 transition"
+              className="h-10 min-w-[110px] rounded-md border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 transition cursor-pointer"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="h-10 min-w-[110px] rounded-md bg-[#65A30D] text-white text-sm font-semibold hover:bg-[#5a8f0c] transition cursor-pointer"
+              disabled={isSubmitting}
+              className="h-10 min-w-[110px] rounded-md bg-[#65A30D] text-white text-sm font-semibold hover:bg-[#5a8f0c] transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Add
+              {isSubmitting ? "Adding..." : "Add"}
             </button>
           </div>
         </div>

@@ -1,15 +1,23 @@
 "use client";
 
+import React, { useState } from "react";
 import { useListing } from "@/lib/hooks/useListing";
 import { type Listing } from "@/lib/services/listingService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { ListingDetailModal } from "./ListingDetailModal";
 
 export default function Listings() {
   const { data, isLoading, error } = useListing();
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetails = (listing: Listing) => {
+    setSelectedListing(listing);
+    setIsModalOpen(true);
+  };
 
   if (isLoading) {
     return <div className="p-4">Loading listings...</div>;
@@ -119,10 +127,13 @@ export default function Listings() {
                       </Badge>
                     </td>
                     <td className="py-3 text-right space-x-2">
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/dashboard/listings/${listing._id}`}>
-                          <Eye className="w-4 h-4 text-blue-500" />
-                        </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="cursor-pointer"
+                        onClick={() => handleViewDetails(listing)}
+                      >
+                        <Eye className="w-4 h-4 text-blue-500" />
                       </Button>
                       <Button variant="ghost" size="icon">
                         <Trash2 className="w-4 h-4 text-red-500" />
@@ -135,6 +146,12 @@ export default function Listings() {
           </table>
         </div>
       </CardContent>
+
+      <ListingDetailModal
+        isOpen={isModalOpen}
+        listing={selectedListing}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Card>
   );
 }
