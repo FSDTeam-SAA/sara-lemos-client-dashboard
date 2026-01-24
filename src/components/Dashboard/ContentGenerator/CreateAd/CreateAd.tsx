@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Page {
   pageId: string;
@@ -33,6 +34,7 @@ interface FacebookBusiness {
 }
 
 export default function CreateAd() {
+  const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const { data: userData, isLoading } = useGetUserIdByUserData(
@@ -145,6 +147,15 @@ export default function CreateAd() {
                 {business.pages.map((page) => (
                   <button
                     key={page.pageId}
+                    onClick={() => {
+                      const adAccountId = business.adAccounts[0]?.account_id;
+                      const formattedAdAccountId = adAccountId
+                        ? `act_${adAccountId}`
+                        : "";
+                      router.push(
+                        `/content-generator/create-ad/ad-details?pageId=${page.pageId}&adAccountId=${formattedAdAccountId}`,
+                      );
+                    }}
                     className="group relative flex flex-col p-8 bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-4xl shadow-xs hover:shadow-2xl hover:shadow-[#65A30D]/10 hover:border-[#65A30D]/40 transition-all duration-500 text-left overflow-hidden cursor-pointer active:scale-[0.98]"
                   >
                     {/* Hover Glow Effect */}
