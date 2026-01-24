@@ -1,5 +1,6 @@
 // src/lib/services/listingService.ts
 import axiosInstance from "../instance/axios-instance";
+import { PDFExtractionResponse } from "../types/listing";
 
 export interface Listing {
   _id: string;
@@ -75,8 +76,8 @@ export const getAllListing = async (): Promise<ListingsResponse> => {
 // Upload Listing PDF
 export const uploadListingManual = async (
   data: FormData,
-): Promise<ListingsResponse> => {
-  const response = await axiosInstance.post<ListingsResponse>(
+): Promise<PDFExtractionResponse> => {
+  const response = await axiosInstance.post<PDFExtractionResponse>(
     "/listing/extract-pdf",
     data,
     {

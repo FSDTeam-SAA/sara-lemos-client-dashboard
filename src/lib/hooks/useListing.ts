@@ -7,6 +7,7 @@ import {
   ListingsResponse,
   uploadListingManual,
 } from "../services/listingService";
+import { PDFExtractionResponse } from "../types/listing";
 
 export function useListing() {
   return useQuery({
@@ -21,7 +22,7 @@ export function useListing() {
 
 // Upload Listing Manual
 export function useUploadListingManual() {
-  return useMutation<ListingsResponse, Error, FormData>({
+  return useMutation<PDFExtractionResponse, Error, FormData>({
     mutationFn: (data) => uploadListingManual(data),
   });
 }
