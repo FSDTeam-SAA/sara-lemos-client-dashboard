@@ -33,7 +33,7 @@ const navigation = [
   { name: "Social Accounts", href: "/social-accounts", icon: Send },
   { name: "Content Generator", href: "/content-generator", icon: NotebookText },
   { name: "Saved Drafts", href: "/saved-drafts", icon: ShoppingBag },
-  { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
+  // { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
   { name: "Subscription", href: "/subscription", icon: Calendar },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
