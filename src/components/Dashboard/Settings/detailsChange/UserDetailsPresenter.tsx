@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
@@ -17,9 +16,6 @@ import { Input } from "@/components/ui/input";
 import { PersonalInformationFormData } from "../common/sschmas";
 import { ProfileResponse } from "@/lib/types/profile";
 
-
-
-
 interface PersonalInformationPresenterProps {
   form: UseFormReturn<PersonalInformationFormData>;
   onSubmit: (data: PersonalInformationFormData) => void;
@@ -33,9 +29,9 @@ const UserDetailsPresenter = ({
   onSubmit,
   onError,
   isLoading = false,
-  profile
+  profile,
 }: PersonalInformationPresenterProps) => {
-  const profileData=profile?.data;
+  const profileData = profile?.data;
   return (
     <div className="flex-1 bg-white rounded-lg border border-gray-200 p-8">
       {/* Header */}
@@ -51,7 +47,10 @@ const UserDetailsPresenter = ({
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6"
+        >
           {/* First and Last Name Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
@@ -96,7 +95,7 @@ const UserDetailsPresenter = ({
 
           {/* Bio Row */}
           <div className="grid grid-cols-1 gap-6">
-             <FormField
+            <FormField
               control={form.control}
               name="bio"
               render={({ field }) => (
@@ -104,11 +103,11 @@ const UserDetailsPresenter = ({
                   <FormLabel className="text-gray-700 font-medium">
                     Bio
                   </FormLabel>
-                   <FormControl>
+                  <FormControl>
                     <textarea
                       placeholder="Tell us about yourself"
                       {...field}
-                       className="flex min-h-[80px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 focus:border-teal-600 focus:ring-teal-600"
+                      className="flex min-h-[80px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 focus:border-teal-600 focus:ring-teal-600"
                     />
                   </FormControl>
                   <FormMessage />
@@ -129,7 +128,7 @@ const UserDetailsPresenter = ({
                   </FormLabel>
                   <FormControl>
                     <Input
-                       type="email"
+                      type="email"
                       placeholder="bessieedwards@gmail.com"
                       {...field}
                       className="border-gray-300 focus:border-teal-600 focus:ring-teal-600"
@@ -162,7 +161,7 @@ const UserDetailsPresenter = ({
 
           {/* Location Details Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <FormField
+            <FormField
               control={form.control}
               name="country"
               render={({ field }) => (
@@ -181,7 +180,7 @@ const UserDetailsPresenter = ({
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="cityState"
               render={({ field }) => (
@@ -202,7 +201,7 @@ const UserDetailsPresenter = ({
             />
           </div>
 
-           {/* Location Details Row 2 */}
+          {/* Location Details Row 2 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -244,7 +243,6 @@ const UserDetailsPresenter = ({
             />
           </div>
 
-
           {/* Action Buttons */}
           <div className="flex gap-4 pt-6">
             <Button
@@ -257,11 +255,22 @@ const UserDetailsPresenter = ({
                   form.reset({
                     firstName: profileData.firstName || "",
                     lastName: profileData.lastName || "",
-                    country: profileData.address?.country || profileData.country || "",
-                    cityState: profileData.address?.cityState || profileData.cityState || "",
-                    postalCode: profileData.address?.postalCode || profileData.postalCode || "",
-                    roadArea: profileData.address?.roadArea || profileData.roadArea || "",
-                    phoneNumber: profileData.phoneNumber || profileData.phone || "",
+                    country:
+                      profileData.address?.country || profileData.country || "",
+                    cityState:
+                      profileData.address?.cityState ||
+                      profileData.cityState ||
+                      "",
+                    postalCode:
+                      profileData.address?.postalCode ||
+                      profileData.postalCode ||
+                      "",
+                    roadArea:
+                      profileData.address?.roadArea ||
+                      profileData.roadArea ||
+                      "",
+                    phoneNumber:
+                      profileData.phoneNumber || profileData.phone || "",
                     bio: profileData.bio || "",
                     email: profileData.email || "",
                   });

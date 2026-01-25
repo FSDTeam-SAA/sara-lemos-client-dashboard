@@ -11,14 +11,16 @@ import { toast } from "sonner";
 import { useGetProfile, useUpdateProfile } from "@/lib/hooks/profile";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { PersonalInformationFormData, personalInformationSchema } from "../common/sschmas";
+import {
+  PersonalInformationFormData,
+  personalInformationSchema,
+} from "../common/sschmas";
 import UserDetailsPresenter from "./UserDetailsPresenter";
 
-
 const UserDetailsContainer = () => {
-  const { data: session } = useSession()
-  const id=session?.user.id || ''
-  const { data } = useGetProfile(id)
+  const { data: session } = useSession();
+  const id = session?.user.id || "";
+  const { data } = useGetProfile(id);
   const { mutate, isPending } = useUpdateProfile();
   const queryclient = useQueryClient();
 
@@ -67,13 +69,17 @@ const UserDetailsContainer = () => {
         cityState: data.cityState,
         roadArea: data.roadArea,
         postalCode: data.postalCode,
-      }
+      },
     };
 
     // Keep the logic for combining names if required (previous requirement)
-    if (data.lastName && payload.firstName && !payload.firstName.includes(data.lastName)) {
-       payload.firstName = `${data.firstName} ${data.lastName}`.trim();
-       delete payload.lastName;
+    if (
+      data.lastName &&
+      payload.firstName &&
+      !payload.firstName.includes(data.lastName)
+    ) {
+      payload.firstName = `${data.firstName} ${data.lastName}`.trim();
+      delete payload.lastName;
     }
 
     const userId = session?.user?.id || profile?.id || profile?._id;

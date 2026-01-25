@@ -124,7 +124,7 @@ export interface UserProfile {
   isVerified: boolean;
   location: string;
   phone: string;
-   profileImage: string;
+  profileImage: string;
   address?: UserAddress;
   phoneNumber?: string;
   postalCode: string;
@@ -177,7 +177,7 @@ export function mapUserToUserProfile(user: User): UserProfile {
     firstName: user.firstName,
     lastName: user.lastName,
     image: {
-      public_id: "", 
+      public_id: "",
       url: user.profilePhoto || user.profileImage,
     },
     profileImage: user.profilePhoto || user.profileImage,
@@ -194,7 +194,7 @@ export function mapUserToUserProfile(user: User): UserProfile {
     cityState: user.address?.cityState || "",
     roadArea: user.address?.roadArea || "",
     gender: user.gender as "male" | "female" | "other",
-    address: user.address
+    address: user.address,
   };
 }
 
@@ -257,4 +257,4 @@ export const DEFAULT_USER_FILTERS: UserFilters = {};
 export const DEFAULT_USER_SORT: UserSortOptions = {
   field: "firstName",
   order: "asc",
-};      
+};

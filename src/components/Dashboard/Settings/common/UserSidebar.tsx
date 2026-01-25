@@ -11,8 +11,6 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserProfile } from "@/lib/types/profile";
 
-
-
 const UserSidebar = () => {
   const { data: session } = useSession();
   const id = session?.user.id || "";
@@ -114,7 +112,7 @@ const UserSidebar = () => {
           <h2 className="text-center font-semibold text-gray-900 text-lg mb-1">
             {profileData.firstName} {profileData.lastName}
           </h2>
-          <p className="text-center text-gray-600 text-sm mb-6">User ID: {id}</p>
+          {/* <p className="text-center text-gray-600 text-sm mb-6">User ID: {id}</p> */}
 
           {/* Info Items */}
           <div className="space-y-4 border-t border-gray-200 pt-6">
@@ -139,7 +137,9 @@ const UserSidebar = () => {
                 value:
                   [
                     profileData.address?.country || profileData.country,
-                    profileData.address?.roadArea || profileData.address?.cityState || profileData.cityState,
+                    profileData.address?.roadArea ||
+                      profileData.address?.cityState ||
+                      profileData.cityState,
                     profileData.street,
                   ]
                     .filter(Boolean)

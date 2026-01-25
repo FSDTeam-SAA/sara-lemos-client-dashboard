@@ -1,54 +1,86 @@
-"use client"
+"use client";
 
-import {   type UseFormReturn } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { type UseFormReturn } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-import { useState } from "react"
-import { ChangePasswordFormData } from "../common/sschmas"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useState } from "react";
+import { ChangePasswordFormData } from "../common/sschmas";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface ChangePasswordPresenterProps {
-  form: UseFormReturn<ChangePasswordFormData>
-  onSubmit: (data: ChangePasswordFormData) => void
-  isLoading?: boolean
+  form: UseFormReturn<ChangePasswordFormData>;
+  onSubmit: (data: ChangePasswordFormData) => void;
+  isLoading?: boolean;
 }
 
-const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePasswordPresenterProps) => {
+const ChangePasswordPresenter = ({
+  form,
+  onSubmit,
+  isLoading = false,
+}: ChangePasswordPresenterProps) => {
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
     confirm: false,
-  })
+  });
 
   const passwordRequirements = [
-    { label: "Minimum 8 characters", met: form.watch("newPassword")?.length >= 8 },
-    { label: "At least 1 uppercase letter", met: /[A-Z]/.test(form.watch("newPassword") || "") },
-    { label: "At least 1 lowercase letter", met: /[a-z]/.test(form.watch("newPassword") || "") },
-    { label: "At least 1 number", met: /[0-9]/.test(form.watch("newPassword") || "") },
+    {
+      label: "Minimum 8 characters",
+      met: form.watch("newPassword")?.length >= 8,
+    },
+    {
+      label: "At least 1 uppercase letter",
+      met: /[A-Z]/.test(form.watch("newPassword") || ""),
+    },
+    {
+      label: "At least 1 lowercase letter",
+      met: /[a-z]/.test(form.watch("newPassword") || ""),
+    },
+    {
+      label: "At least 1 number",
+      met: /[0-9]/.test(form.watch("newPassword") || ""),
+    },
     {
       label: "At least 1 special character (e.g. !@#$%^&*)",
-      met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(form.watch("newPassword") || ""),
+      met: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(
+        form.watch("newPassword") || "",
+      ),
     },
-  ]
+  ];
 
   return (
     <div className="flex-1 bg-white rounded-lg border border-gray-200 p-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Change Password</h1>
-        <p className="text-gray-600 text-sm mt-1">Manage your personal information and profile details.</p>
+        <p className="text-gray-600 text-sm mt-1">
+          Manage your personal information and profile details.
+        </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 max-w-2xl"
+        >
           {/* Current Password */}
           <FormField
             control={form.control}
             name="oldPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Current Password</FormLabel>
+                <FormLabel className="text-gray-700 font-medium">
+                  Current Password
+                </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -59,10 +91,20 @@ const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePa
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
+                      onClick={() =>
+                        setShowPasswords((prev) => ({
+                          ...prev,
+                          current: !prev.current,
+                        }))
+                      }
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -91,7 +133,9 @@ const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePa
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Create New Password</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Create New Password
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -102,10 +146,20 @@ const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePa
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPasswords((prev) => ({ ...prev, new: !prev.new }))}
+                        onClick={() =>
+                          setShowPasswords((prev) => ({
+                            ...prev,
+                            new: !prev.new,
+                          }))
+                        }
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -132,7 +186,9 @@ const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePa
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Confirm New Password</FormLabel>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Confirm New Password
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -143,10 +199,20 @@ const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePa
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
+                        onClick={() =>
+                          setShowPasswords((prev) => ({
+                            ...prev,
+                            confirm: !prev.confirm,
+                          }))
+                        }
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -171,7 +237,9 @@ const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePa
 
           {/* Password Requirements */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <p className="text-gray-700 font-medium text-sm mb-3">Password requirements:</p>
+            <p className="text-gray-700 font-medium text-sm mb-3">
+              Password requirements:
+            </p>
             <ul className="space-y-2">
               {passwordRequirements.map((req, idx) => (
                 <li
@@ -205,14 +273,18 @@ const ChangePasswordPresenter = ({ form, onSubmit, isLoading = false }: ChangePa
             >
               Discard Changes
             </Button>
-            <Button type="submit" disabled={isLoading} className="bg-[#65A30D] cursor-pointer hover:bg-primary/90 text-white">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-[#65A30D] cursor-pointer hover:bg-primary/90 text-white"
+            >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
       </Form>
     </div>
-  )
-}
+  );
+};
 
-export default ChangePasswordPresenter
+export default ChangePasswordPresenter;

@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useCreateCampaign,
   useCreateAdSet,
@@ -45,8 +45,11 @@ export default function AdDetailsPage() {
   // Get userId from session
   const { data: session } = useSession();
   const userId = session?.user?.id || "";
-  const { data: campaignData, isLoading: isCampaignsLoading } =
-    useGetAllCampaign(userId, pageId || "");
+  const {
+    data: campaignData,
+    isLoading: isCampaignsLoading,
+    refetch: refetchCampaigns,
+  } = useGetAllCampaign(userId, pageId || "");
 
   const [activeTab, setActiveTab] = useState<Tab>("campaign");
 
@@ -76,6 +79,18 @@ export default function AdDetailsPage() {
   const [primaryText, setPrimaryText] = useState("");
   const [destinationUrl, setDestinationUrl] = useState("");
   const [creativeErrors, setCreativeErrors] = useState<CreativeErrors>({});
+
+  // Loading states
+  const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+  const [isCreatingAdSet, setIsCreatingAdSet] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  // Auto-refresh campaigns when navigating to Ad Set tab
+  useEffect(() => {
+    if (activeTab === "adSet" && userId && pageId) {
+      refetchCampaigns();
+    }
+  }, [activeTab, refetchCampaigns, userId, pageId]);
 
   const validateCampaign = (): boolean => {
     const errors: CampaignErrors = {};
@@ -109,6 +124,7 @@ export default function AdDetailsPage() {
       objective,
     };
 
+    setIsCreatingCampaign(true);
     try {
       const response = await createCampaign(campaignData);
       console.log("🚀 Campaign Data:", response);
@@ -118,6 +134,8 @@ export default function AdDetailsPage() {
     } catch (error) {
       console.error("❌ Error creating Campaign:", error);
       toast.error("Failed to create campaign. Please try again.");
+    } finally {
+      setIsCreatingCampaign(false);
     }
   };
 
@@ -195,6 +213,7 @@ export default function AdDetailsPage() {
       },
     };
 
+    setIsCreatingAdSet(true);
     try {
       console.log("🚀 Submitting Ad Set Data:", adSetData);
       const response = await createAdSet(adSetData);
@@ -205,6 +224,8 @@ export default function AdDetailsPage() {
     } catch (error) {
       console.error("❌ Error creating Ad Set:", error);
       toast.error("Failed to create Ad Set. Please try again.");
+    } finally {
+      setIsCreatingAdSet(false);
     }
   };
 
@@ -259,7 +280,7 @@ export default function AdDetailsPage() {
     toast.success("Creative added successfully!");
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!validateCreative()) {
       toast.error("Please fill in all required fields");
       return;
@@ -280,9 +301,19 @@ export default function AdDetailsPage() {
       primaryText,
       destinationUrl,
     };
-    console.log("🚀 Publish Data:", publishData);
-    toast.success("Ad published successfully!");
-    // Note: This is the final step, so no tab navigation needed
+
+    setIsPublishing(true);
+    try {
+      console.log("🚀 Publish Data:", publishData);
+      // Simulate API call - replace with actual API call when ready
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      toast.success("Ad published successfully!");
+    } catch (error) {
+      console.error("❌ Error publishing ad:", error);
+      toast.error("Failed to publish ad. Please try again.");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const tabs = [
@@ -422,9 +453,36 @@ export default function AdDetailsPage() {
                 <div className="pt-4">
                   <button
                     onClick={handleCreateCampaign}
-                    className="w-full bg-[#65A30D] hover:bg-[#4d7c0b] text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer"
+                    disabled={isCreatingCampaign}
+                    className={`w-full bg-[#65A30D] hover:bg-[#4d7c0b] text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2 ${
+                      isCreatingCampaign
+                        ? "opacity-70 cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
                   >
-                    Create Campaign
+                    {isCreatingCampaign && (
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    )}
+                    {isCreatingCampaign ? "Creating..." : "Create Campaign"}
                   </button>
                 </div>
               </div>
@@ -650,9 +708,36 @@ export default function AdDetailsPage() {
                 <div className="pt-4">
                   <button
                     onClick={handleCreateAdSet}
-                    className="w-full bg-[#65A30D] hover:bg-[#4d7c0b] text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer"
+                    disabled={isCreatingAdSet}
+                    className={`w-full bg-[#65A30D] hover:bg-[#4d7c0b] text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2 ${
+                      isCreatingAdSet
+                        ? "opacity-70 cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
                   >
-                    Create Ad Set
+                    {isCreatingAdSet && (
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    )}
+                    {isCreatingAdSet ? "Creating..." : "Create Ad Set"}
                   </button>
                 </div>
               </div>
@@ -810,9 +895,34 @@ export default function AdDetailsPage() {
                   </button>
                   <button
                     onClick={handlePublish}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+                    disabled={isPublishing}
+                    className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2 ${
+                      isPublishing ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
                   >
-                    Publish
+                    {isPublishing && (
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    )}
+                    {isPublishing ? "Publishing..." : "Publish"}
                   </button>
                 </div>
               </div>
