@@ -13,6 +13,9 @@ import {
   ShoppingBasket,
   Send,
   Settings,
+  WandSparkles,
+  Globe,
+  Upload,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
@@ -29,11 +32,11 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Dashboard Overview", href: "/", icon: HardDrive },
   { name: "Listings", href: "/listings", icon: Ship },
-  { name: "Upload Listing", href: "/upload-listing", icon: ShoppingBasket },
-  { name: "Social Accounts", href: "/social-accounts", icon: Send },
-  { name: "Content Generator", href: "/content-generator", icon: NotebookText },
+  { name: "Upload Listing", href: "/upload-listing", icon: Upload },
+  { name: "Social Accounts", href: "/social-accounts", icon: Globe },
+  { name: "Content Generator", href: "/content-generator", icon: WandSparkles },
   { name: "Saved Drafts", href: "/saved-drafts", icon: ShoppingBag },
-  // { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
+  { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
   { name: "Subscription", href: "/subscription", icon: Calendar },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
