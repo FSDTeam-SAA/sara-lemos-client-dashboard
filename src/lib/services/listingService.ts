@@ -101,3 +101,12 @@ export const createListingManual = async (
 
   return response.data;
 };
+
+// delete listing
+export const deleteListing = async (listingId: string): Promise<void> => {
+  await axiosInstance.delete(`/listing/${listingId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  });
+};

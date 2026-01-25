@@ -422,7 +422,8 @@ export default function UploadListingManual() {
       // ✅ Axios will set the correct boundary automatically when Content-Type is OMITTED
       const res = await axiosInstance.post("/listing/create", fd);
       console.log("🚀 SUCCESS:", res.data);
-      alert("Submitted Successfully ✅");
+      // alert("Submitted Successfully ✅");
+      toast.success("Submitted Successfully ✅");
       onCancel();
     } catch (err) {
       console.error("❌ SUBMISSION FAILED:", err);
@@ -434,7 +435,7 @@ export default function UploadListingManual() {
       } else if (err instanceof Error) {
         msg = err.message;
       }
-      alert(`Submission Failed: ${safeToString(msg)}`);
+      toast.error(`Submission Failed: ${safeToString(msg)}`);
     } finally {
       setIsSubmitting(false);
     }

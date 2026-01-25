@@ -3,6 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   createListingManual,
+  deleteListing,
   getAllListing,
   ListingsResponse,
   uploadListingManual,
@@ -31,5 +32,12 @@ export function useUploadListingManual() {
 export function useCreateListingManual() {
   return useMutation<ListingsResponse, Error, FormData>({
     mutationFn: (data) => createListingManual(data),
+  });
+}
+
+// delete listing
+export function useDeleteListing() {
+  return useMutation<void, Error, string>({
+    mutationFn: (listingId) => deleteListing(listingId),
   });
 }
