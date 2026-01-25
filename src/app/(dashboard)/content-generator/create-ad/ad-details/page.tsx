@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import AdDetailsPage from "@/components/Dashboard/ContentGenerator/AdDetailsPage/AdDetailsPage";
-export default function page() {
+
+export default function Page() {
   return (
-    <div>
+    <Suspense fallback={<div className="p-4">Loading...</div>}>
       <AdDetailsPage />
-    </div>
+    </Suspense>
   );
 }
