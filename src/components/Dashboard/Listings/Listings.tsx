@@ -1,18 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import { useListing } from "@/lib/hooks/useListing";
+import { useDeleteListing, useListing } from "@/lib/hooks/useListing";
 import { type Listing } from "@/lib/services/listingService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Trash2 } from "lucide-react";
 import { ListingDetailModal } from "./ListingDetailModal";
+import { toast } from "sonner";
 
 export default function Listings() {
   const { data, isLoading, error } = useListing();
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { mutateAsync: deleteListing } = useDeleteListing();
 
   const handleViewDetails = (listing: Listing) => {
     setSelectedListing(listing);
@@ -46,6 +48,13 @@ export default function Listings() {
       currency: "USD",
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  // delete listing
+  const handleDeleteListing = (listingId: string) => {
+    console.log(listingId);
+    deleteListing(listingId);
+    toast.success("Listing deleted successfully");
   };
 
   return (
@@ -135,7 +144,12 @@ export default function Listings() {
                       >
                         <Eye className="w-4 h-4 text-blue-500" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteListing(listing._id)}
+                        className="cursor-pointer"
+                      >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
                     </td>

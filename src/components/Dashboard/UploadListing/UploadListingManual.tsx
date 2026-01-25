@@ -4,7 +4,9 @@ import axiosInstance from "@/lib/instance/axios-instance";
 import axios from "axios";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { toast } from "sonner";
+import { PDFExtractionResponse } from "@/lib/types/listing";
 
 type FormState = {
   yachtName: string;
@@ -74,6 +76,7 @@ function safeToString(value: unknown) {
 
 export default function UploadListingManual() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoFilled, setIsAutoFilled] = useState(false);
 
   const [form, setForm] = useState<FormState>({
     yachtName: "",
@@ -146,6 +149,137 @@ export default function UploadListingManual() {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: "" }));
   };
+
+  // Auto-fill form from PDF extraction data
+  useEffect(() => {
+    const extractedDataStr = sessionStorage.getItem("pdfExtractedData");
+    if (!extractedDataStr) return;
+
+    try {
+      const data: PDFExtractionResponse = JSON.parse(extractedDataStr);
+      const { matchedData, images } = data;
+
+      // Helper function to check if value is valid (not "Not specified")
+      const isValidValue = (val: unknown): boolean => {
+        if (val === null || val === undefined) return false;
+        const str = String(val).trim();
+        return str !== "" && str.toLowerCase() !== "not specified";
+      };
+
+      // Helper to get construction type from constructions object
+      const getConstructionType = (): FormState["construction"] => {
+        const constructions = matchedData.constructions;
+        if (constructions.GRP === true || constructions.GRP === "true")
+          return "GRP";
+        if (constructions.STEEL === true || constructions.STEEL === "true")
+          return "Steel";
+        if (
+          constructions.Aluminum === true ||
+          constructions.Aluminum === "true"
+        )
+          return "Aluminum";
+        if (constructions.Wood === true || constructions.Wood === "true")
+          return "Wood";
+        if (
+          constructions.Composite === true ||
+          constructions.Composite === "true"
+        )
+          return "Composite";
+        return "";
+      };
+
+      // Build the new form state
+      const newFormState: Partial<FormState> = {};
+
+      if (isValidValue(matchedData.yachtName))
+        newFormState.yachtName = matchedData.yachtName;
+      if (isValidValue(matchedData.builder))
+        newFormState.builder = matchedData.builder;
+      if (isValidValue(matchedData.yachtType))
+        newFormState.yachtType = matchedData.yachtType;
+      if (isValidValue(matchedData.model))
+        newFormState.model = matchedData.model;
+      if (isValidValue(matchedData.location))
+        newFormState.location = matchedData.location;
+      if (isValidValue(matchedData.guestCapacity))
+        newFormState.guestCapacity = String(matchedData.guestCapacity);
+      if (isValidValue(matchedData.price))
+        newFormState.price = String(matchedData.price);
+      if (isValidValue(matchedData.bathRooms))
+        newFormState.bathrooms = String(matchedData.bathRooms);
+      if (isValidValue(matchedData.bedRooms))
+        newFormState.bedrooms = String(matchedData.bedRooms);
+      if (isValidValue(matchedData.cabins))
+        newFormState.cabins = String(matchedData.cabins);
+      if (isValidValue(matchedData.crew))
+        newFormState.crew = String(matchedData.crew);
+      if (isValidValue(matchedData.guests))
+        newFormState.guests = String(matchedData.guests);
+      if (isValidValue(matchedData.yearBuilt))
+        newFormState.yearBuilt = String(matchedData.yearBuilt);
+      if (isValidValue(matchedData.grossTons))
+        newFormState.grossTons = String(matchedData.grossTons);
+      if (isValidValue(matchedData.engineMake))
+        newFormState.engineMake = matchedData.engineMake;
+      if (isValidValue(matchedData.engineModel))
+        newFormState.engineModel = matchedData.engineModel;
+      if (isValidValue(matchedData.description))
+        newFormState.description = matchedData.description;
+
+      // Handle construction
+      const construction = getConstructionType();
+      if (construction) newFormState.construction = construction;
+
+      // Handle length, beam, draft with units
+      if (isValidValue(matchedData.lengthOverall?.value)) {
+        newFormState.lengthOverall = String(matchedData.lengthOverall.value);
+        if (isValidValue(matchedData.lengthOverall?.unit)) {
+          const unit = matchedData.lengthOverall.unit.toLowerCase();
+          newFormState.lengthUnit = unit === "m" ? "m" : "ft";
+        }
+      }
+
+      if (isValidValue(matchedData.beam?.value)) {
+        newFormState.beam = String(matchedData.beam.value);
+        if (isValidValue(matchedData.beam?.unit)) {
+          const unit = matchedData.beam.unit.toLowerCase();
+          newFormState.beamUnit = unit === "m" ? "m" : "ft";
+        }
+      }
+
+      if (isValidValue(matchedData.draft?.value)) {
+        newFormState.draft = String(matchedData.draft.value);
+        if (isValidValue(matchedData.draft?.unit)) {
+          const unit = matchedData.draft.unit.toLowerCase();
+          newFormState.draftUnit = unit === "m" ? "m" : "ft";
+        }
+      }
+
+      // Handle images - create URL-based previews
+      if (images && images.length > 0) {
+        const imagePreviews = images.map((url) => ({
+          file: new File([], url.split("/").pop() || "image.png", {
+            type: "image/png",
+          }),
+          url: url,
+        }));
+        newFormState.imagePreviews = imagePreviews;
+        // Note: We can't set actual File objects from URLs, so images array stays empty
+        // The form will need to handle URL-based previews differently
+      }
+
+      // Update form state
+      setForm((prev) => ({ ...prev, ...newFormState }));
+      setIsAutoFilled(true);
+      toast.success("Form auto-filled from PDF extraction!");
+
+      // Clear the sessionStorage after using it
+      sessionStorage.removeItem("pdfExtractedData");
+    } catch (error) {
+      console.error("Failed to parse extracted data:", error);
+      toast.error("Failed to auto-fill form from PDF data");
+    }
+  }, []);
 
   const validate = (): Errors => {
     const e: Errors = {};
@@ -288,7 +422,8 @@ export default function UploadListingManual() {
       // ✅ Axios will set the correct boundary automatically when Content-Type is OMITTED
       const res = await axiosInstance.post("/listing/create", fd);
       console.log("🚀 SUCCESS:", res.data);
-      alert("Submitted Successfully ✅");
+      // alert("Submitted Successfully ✅");
+      toast.success("Submitted Successfully ✅");
       onCancel();
     } catch (err) {
       console.error("❌ SUBMISSION FAILED:", err);
@@ -300,7 +435,7 @@ export default function UploadListingManual() {
       } else if (err instanceof Error) {
         msg = err.message;
       }
-      alert(`Submission Failed: ${safeToString(msg)}`);
+      toast.error(`Submission Failed: ${safeToString(msg)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -366,6 +501,39 @@ export default function UploadListingManual() {
           </p>
         </div>
       </div>
+
+      {/* Auto-fill Indicator */}
+      {isAutoFilled && (
+        <div className="mb-6 rounded-lg border border-[#65A30D]/30 bg-[#65A30D]/5 p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 rounded-full bg-[#65A30D] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg
+                className="w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#65A30D]">
+                Form Auto-Filled from PDF
+              </h3>
+              <p className="text-xs text-gray-600 mt-1">
+                The form has been populated with data extracted from your PDF.
+                Please review all fields and fill in any missing information
+                before submitting.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <form
         onSubmit={onSubmit}

@@ -3,10 +3,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   createListingManual,
+  deleteListing,
   getAllListing,
   ListingsResponse,
   uploadListingManual,
 } from "../services/listingService";
+import { PDFExtractionResponse } from "../types/listing";
 
 export function useListing() {
   return useQuery({
@@ -21,7 +23,7 @@ export function useListing() {
 
 // Upload Listing Manual
 export function useUploadListingManual() {
-  return useMutation<ListingsResponse, Error, FormData>({
+  return useMutation<PDFExtractionResponse, Error, FormData>({
     mutationFn: (data) => uploadListingManual(data),
   });
 }
@@ -30,5 +32,12 @@ export function useUploadListingManual() {
 export function useCreateListingManual() {
   return useMutation<ListingsResponse, Error, FormData>({
     mutationFn: (data) => createListingManual(data),
+  });
+}
+
+// delete listing
+export function useDeleteListing() {
+  return useMutation<void, Error, string>({
+    mutationFn: (listingId) => deleteListing(listingId),
   });
 }

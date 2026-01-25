@@ -4,10 +4,13 @@ import { ArrowLeft, FileText } from "lucide-react";
 import Link from "next/link";
 import { useUploadListingManual } from "@/lib/hooks/useListing";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function UploadListingDocument() {
   const { mutateAsync: uploadListingManual, isPending } =
     useUploadListingManual();
+  const router = useRouter();
 
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -20,8 +23,20 @@ export default function UploadListingDocument() {
     try {
       const response = await uploadListingManual(formData);
       console.log("Upload successful:", response);
+
+      // Show success toast
+      toast.success("PDF extracted successfully! Redirecting to form...");
+
+      // Store extracted data in sessionStorage for the manual form to pick up
+      sessionStorage.setItem("pdfExtractedData", JSON.stringify(response));
+
+      // Navigate to manual form
+      setTimeout(() => {
+        router.push("/upload-listing/upload-listing-manual");
+      }, 1000);
     } catch (error) {
       console.error("Upload failed:", error);
+      toast.error("Failed to extract PDF. Please try again.");
     }
   };
 
