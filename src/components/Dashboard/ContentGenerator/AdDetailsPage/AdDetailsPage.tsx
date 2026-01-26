@@ -9,8 +9,10 @@ import {
   useCreateAdSet,
   useGetAllCampaign,
 } from "@/lib/hooks/useCampaign";
+import { GenerateAdResponse } from "@/lib/services/campaignService";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { GenerateContentModal } from "./GenerateContentModal";
 
 type Tab = "campaign" | "adSet" | "creative";
 
@@ -69,12 +71,13 @@ export default function AdDetailsPage() {
   const [ageMax, setAgeMax] = useState("");
   const [gender, setGender] = useState("All");
   const [adSetErrors, setAdSetErrors] = useState<AdSetErrors>({});
+  const [createdAdSetId, setCreatedAdSetId] = useState("");
 
   // Creative state
   const [creativeName, setCreativeName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [adFormat, setAdFormat] = useState("");
+  const [adFormat, setAdFormat] = useState("SINGLE_IMAGE");
   const [headline, setHeadline] = useState("");
   const [primaryText, setPrimaryText] = useState("");
   const [destinationUrl, setDestinationUrl] = useState("");
@@ -84,6 +87,9 @@ export default function AdDetailsPage() {
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
   const [isCreatingAdSet, setIsCreatingAdSet] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // Modal State
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 
   // Auto-refresh campaigns when navigating to Ad Set tab
   useEffect(() => {
@@ -218,6 +224,16 @@ export default function AdDetailsPage() {
       console.log("🚀 Submitting Ad Set Data:", adSetData);
       const response = await createAdSet(adSetData);
       console.log("✅ Ad Set Created Successfully:", response);
+
+      // Save ad set ID
+      if (response?._id) {
+        setCreatedAdSetId(response._id);
+        console.log("💾 Saved Ad Set ID:", response._id);
+      } else if (response?.id) {
+        setCreatedAdSetId(response.id);
+        console.log("💾 Saved Ad Set ID:", response.id);
+      }
+
       toast.success("Ad Set created successfully!");
       // Navigate to Creative tab
       setActiveTab("creative");
@@ -230,11 +246,14 @@ export default function AdDetailsPage() {
   };
 
   const handleGenerateByAI = () => {
-    if (!websiteUrl.trim()) {
-      console.log("⚠️ Please enter a Website URL");
-      return;
+    setIsGenerateModalOpen(true);
+  };
+
+  const handleAdGenerated = (data: GenerateAdResponse) => {
+    if (data?.facebook) {
+      if (data.facebook.headline) setHeadline(data.facebook.headline);
+      if (data.facebook.primaryText) setPrimaryText(data.facebook.primaryText);
     }
-    console.log("🤖 Generating content from URL:", websiteUrl);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -286,25 +305,26 @@ export default function AdDetailsPage() {
       return;
     }
 
-    const publishData = {
-      creativeName,
-      websiteUrl,
-      uploadedImage: uploadedImage
-        ? {
-            name: uploadedImage.name,
-            size: uploadedImage.size,
-            type: uploadedImage.type,
-          }
-        : null,
-      adFormat,
-      headline,
-      primaryText,
-      destinationUrl,
+    // Construct the adCreative JSON object
+    const adCreative = {
+      name: creativeName,
+      headline: headline,
+      primaryText: primaryText,
+      format: adFormat, // e.g., "SINGLE_IMAGE" or "VIDEO"
+      destinationUrl: destinationUrl,
     };
+
+    // Log the Form Data structure
+    console.log("🚀 Publish Data (FormData Preview):", {
+      adAccountId,
+      pageId,
+      adSetId: createdAdSetId,
+      adCreative: JSON.stringify(adCreative), // Stringified JSON
+      ads: uploadedImage, // File object
+    });
 
     setIsPublishing(true);
     try {
-      console.log("🚀 Publish Data:", publishData);
       // Simulate API call - replace with actual API call when ready
       await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success("Ad published successfully!");
@@ -778,16 +798,16 @@ export default function AdDetailsPage() {
                     Generate by AI (for AI generation)
                   </label>
                   <div className="flex gap-2">
-                    <input
+                    {/* <input
                       type="url"
                       value={websiteUrl}
                       onChange={(e) => setWebsiteUrl(e.target.value)}
                       placeholder="https://example.com"
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#65A30D] focus:border-transparent"
-                    />
+                    /> */}
                     <button
                       onClick={handleGenerateByAI}
-                      className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+                      className="inline-flex items-center gap-2 bg-[#65A30D] hover:bg-[#4d7c0b] text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer"
                     >
                       <Sparkles size={18} />
                       Generate by AI
@@ -824,13 +844,21 @@ export default function AdDetailsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Ad Format
                     </label>
-                    <input
+                    {/* <input
                       type="text"
                       value={adFormat}
                       onChange={(e) => setAdFormat(e.target.value)}
                       placeholder="e.g., Single Image, Carousel"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#65A30D] focus:border-transparent"
-                    />
+                    /> */}
+                    <select
+                      value={adFormat}
+                      onChange={(e) => setAdFormat(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#65A30D] focus:border-transparent"
+                    >
+                      <option value="SINGLE_IMAGE">Single Image</option>
+                      <option value="VIDEO">Video</option>
+                    </select>
                   </div>
 
                   {/* Headline */}
@@ -930,6 +958,11 @@ export default function AdDetailsPage() {
           </div>
         </div>
       </div>
+      <GenerateContentModal
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        onGenerate={handleAdGenerated}
+      />
     </div>
   );
 }
