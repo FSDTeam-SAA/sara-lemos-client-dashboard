@@ -36,6 +36,34 @@ export interface CreateAdSetPayload {
   };
 }
 
+export interface GenerateAdPayload {
+  tone: string;
+  postType: string;
+  platforms: string[];
+  contactInfo: string;
+  keywords: string[];
+  cta: string;
+}
+
+export interface GenerateAdResponse {
+  facebook: {
+    headline: string | null;
+    primaryText: string | null;
+    imagePrompt: string;
+    imageUrl: string | null;
+  };
+  instagram: {
+    caption: string;
+    imagePrompt: string;
+    imageUrl: string | null;
+  };
+  meta: {
+    tone: string;
+    postType: string;
+    cta: string;
+  };
+}
+
 // Create Campaign
 export const createCampaign = async (data: CreateCampaignPayload) => {
   try {
@@ -65,6 +93,16 @@ export const getAllCampaign = async (
 export const createAdSet = async (data: CreateAdSetPayload) => {
   try {
     const response = await axiosInstance.post("/final/create-adSet", data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// genarate ad
+export const generateAd = async (data: GenerateAdPayload) => {
+  try {
+    const response = await axiosInstance.post("/ai/generate-ad", data);
     return response.data;
   } catch (error) {
     throw error;

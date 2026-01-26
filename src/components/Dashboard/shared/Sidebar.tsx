@@ -36,7 +36,7 @@ const navigation = [
   { name: "Social Accounts", href: "/social-accounts", icon: Globe },
   { name: "Content Generator", href: "/content-generator", icon: WandSparkles },
   { name: "Saved Drafts", href: "/saved-drafts", icon: ShoppingBag },
-  { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
+  // { name: "Schedule Posts", href: "/schedule-posts", icon: MessageCircleMore },
   { name: "Subscription", href: "/subscription", icon: Calendar },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

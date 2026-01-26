@@ -7,6 +7,8 @@ import {
   CreateCampaignPayload,
   CreateAdSetPayload,
   getAllCampaign,
+  generateAd,
+  GenerateAdPayload,
 } from "../services/campaignService";
 
 // Create Campaign
@@ -29,5 +31,12 @@ export function useGetAllCampaign(userId: string, pageId: string) {
 export function useCreateAdSet() {
   return useMutation({
     mutationFn: (data: CreateAdSetPayload) => createAdSet(data),
+  });
+}
+
+// generate ad
+export function useGenerateAd() {
+  return useMutation({
+    mutationFn: (data: GenerateAdPayload) => generateAd(data),
   });
 }
