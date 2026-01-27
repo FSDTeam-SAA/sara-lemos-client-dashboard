@@ -60,7 +60,7 @@ export default function QuickActions() {
           {/* ✅ Card 3 */}
           <button
             type="button"
-            className={`${cardBase} text-left`}
+            className={`${cardBase} text-left cursor-pointer`}
             onClick={() => setIsHelpModalOpen(true)}
           >
             <div className="bg-[#610BF51A] rounded-xl p-3 sm:p-4 shrink-0 flex items-center justify-center">

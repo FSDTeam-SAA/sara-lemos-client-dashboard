@@ -1,6 +1,7 @@
 "use client";
 import { useGetUserIdByUserData } from "@/lib/hooks/useSocialAccounts";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import React from "react";
 
 export default function Subscription() {
@@ -39,9 +40,12 @@ export default function Subscription() {
             You currently do not have an active subscription plan. Upgrade now
             to unlock premium features.
           </p>
-          <button className="px-6 py-2.5 bg-[#65A30D] text-white font-semibold rounded-lg shadow-md hover:bg-[#578d0b] transition-all cursor-pointer">
+          <Link
+            href="/subscription"
+            className="px-6 py-2.5 bg-[#65A30D] text-white font-semibold rounded-lg shadow-md hover:bg-[#578d0b] transition-all cursor-pointer"
+          >
             View Plans
-          </button>
+          </Link>
         </div>
       </div>
     );
