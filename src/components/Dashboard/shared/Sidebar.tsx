@@ -119,7 +119,7 @@ export default function Sidebar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg p-3 min-h-[44px] text-base leading-[150%] tracking-[0%] font-semibold transition-colors touch-manipulation",
+                  "flex items-center gap-3 rounded-lg p-3 py-5 min-h-[44px] text-base leading-[150%] tracking-[0%] font-semibold transition-colors touch-manipulation",
                   isActive
                     ? "bg-[#F8F9FA] text-[#65A30D] font-bold text-[16px]"
                     : "text-[#65A30D] hover:bg-[#F8F9FA] hover:text-[#65A30D] font-normal active:bg-[#F8F9FA]",
@@ -130,10 +130,6 @@ export default function Sidebar() {
               </Link>
             );
           })}
-        </nav>
-
-        {/* Logout */}
-        <div className="border-t border-gray-200 p-3">
           <Button
             type="button"
             variant="ghost"
@@ -143,7 +139,10 @@ export default function Sidebar() {
             <LogOut className="h-5 w-5 shrink-0" />
             <span>Log Out</span>
           </Button>
+        </nav>
 
+        {/* Logout */}
+        <div className=" p-3">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>

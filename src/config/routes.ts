@@ -1,4 +1,4 @@
-import { LucideIcon } from "lucide-react";
+import { Anchor, CreditCard, FileText, LucideIcon } from "lucide-react";
 import {
   Calendar,
   Ship,
@@ -29,7 +29,7 @@ export const routes: RouteConfig[] = [
   {
     name: "Listings",
     href: "/listings",
-    icon: Ship,
+    icon: Anchor,
     title: "Listings",
     subtitle: "Manage your yacht listings",
   },
@@ -57,14 +57,14 @@ export const routes: RouteConfig[] = [
   {
     name: "Saved Drafts",
     href: "/saved-drafts",
-    icon: ShoppingBag,
+    icon: FileText,
     title: "Saved Drafts",
     subtitle: "View and edit your saved content",
   },
   {
     name: "Subscription",
     href: "/subscription",
-    icon: Calendar,
+    icon: CreditCard,
     title: "Subscription",
     subtitle: "Manage your subscription plan",
   },
