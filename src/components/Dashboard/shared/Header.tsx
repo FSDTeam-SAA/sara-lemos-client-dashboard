@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,22 +10,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
+import { Menu } from "lucide-react";
 import { signOut } from "next-auth/react";
-import Link from "next/link";
 import { useState } from "react";
 import HeaderTitle from "../ReusableComponents/HeaderTitle";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { useCurrentRoute } from "@/hooks/useCurrentRoute";
 
 export default function DashboardHeader() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const { toggleSidebar } = useSidebar();
+  const currentRoute = useCurrentRoute();
 
   const loading = false;
 
@@ -48,21 +43,26 @@ export default function DashboardHeader() {
   }
 
   return (
-    <header className="w-full h-[100px] bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
-      {/* Left: Logo + Sidebar Toggle */}
-      <div className="flex items-center gap-3">
+    <header className="w-full h-auto lg:h-[100px] bg-white shadow-sm border-b px-3 sm:px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between">
+      {/* Left: Hamburger + Title */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+        {/* Hamburger Menu - visible on mobile/tablet */}
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="lg:hidden p-2 rounded-md border hover:bg-gray-100"
+          onClick={toggleSidebar}
+          className="lg:hidden p-2 rounded-md border border-gray-200 hover:bg-gray-100 active:bg-gray-200 transition-colors touch-manipulation shrink-0"
+          aria-label="Toggle sidebar"
         >
-          <Menu size={22} />
+          <Menu size={20} className="text-gray-700" />
         </button>
 
-        <HeaderTitle title="Dashboard" subtitle="See your updates today!" />
+        {/* Header Title - dynamic based on route */}
+        <div className="min-w-0 flex-1">
+          <HeaderTitle
+            title={currentRoute.title}
+            subtitle={currentRoute.subtitle}
+          />
+        </div>
       </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-4"></div>
 
       {/* Logout Dialog */}
       <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>

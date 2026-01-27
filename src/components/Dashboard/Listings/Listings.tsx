@@ -74,7 +74,7 @@ export default function Listings() {
                 <th className="py-3 text-left font-medium">Price</th>
                 <th className="py-3 text-left font-medium">Location</th>
                 <th className="py-3 text-left font-medium">Created</th>
-                <th className="py-3 text-left font-medium">Updated</th>
+                {/* <th className="py-3 text-left font-medium">Updated</th> */}
                 <th className="py-3 text-left font-medium">Status</th>
                 <th className="py-3 text-right font-medium">Actions</th>
               </tr>
@@ -120,9 +120,9 @@ export default function Listings() {
                     <td className="py-3 text-gray-500 text-xs">
                       {formatDate(listing.createdAt)}
                     </td>
-                    <td className="py-3 text-gray-500 text-xs">
+                    {/* <td className="py-3 text-gray-500 text-xs">
                       {formatDate(listing.updatedAt)}
-                    </td>
+                    </td> */}
                     <td className="py-3">
                       <Badge
                         variant={listing.isActive ? "default" : "secondary"}
