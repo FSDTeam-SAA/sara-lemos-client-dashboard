@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,23 +10,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
+import { Menu } from "lucide-react";
 import { signOut } from "next-auth/react";
-import Link from "next/link";
 import { useState } from "react";
 import HeaderTitle from "../ReusableComponents/HeaderTitle";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useCurrentRoute } from "@/hooks/useCurrentRoute";
 
 export default function DashboardHeader() {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { toggleSidebar } = useSidebar();
+  const currentRoute = useCurrentRoute();
 
   const loading = false;
 
@@ -61,14 +55,14 @@ export default function DashboardHeader() {
           <Menu size={20} className="text-gray-700" />
         </button>
 
-        {/* Header Title - responsive */}
+        {/* Header Title - dynamic based on route */}
         <div className="min-w-0 flex-1">
-          <HeaderTitle title="Dashboard" subtitle="See your updates today!" />
+          <HeaderTitle
+            title={currentRoute.title}
+            subtitle={currentRoute.subtitle}
+          />
         </div>
       </div>
-
-      {/* Right side - can be expanded later */}
-      <div className="flex items-center gap-2 sm:gap-4"></div>
 
       {/* Logout Dialog */}
       <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>

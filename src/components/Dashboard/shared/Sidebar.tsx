@@ -2,18 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  Calendar,
-  Ship,
-  LogOut,
-  HardDrive,
-  ShoppingBag,
-  Settings,
-  WandSparkles,
-  Globe,
-  Upload,
-  X,
-} from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import {
@@ -26,17 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
-
-const navigation = [
-  { name: "Dashboard Overview", href: "/", icon: HardDrive },
-  { name: "Listings", href: "/listings", icon: Ship },
-  { name: "Upload Listing", href: "/upload-listing", icon: Upload },
-  { name: "Social Accounts", href: "/social-accounts", icon: Globe },
-  { name: "Content Generator", href: "/content-generator", icon: WandSparkles },
-  { name: "Saved Drafts", href: "/saved-drafts", icon: ShoppingBag },
-  { name: "Subscription", href: "/subscription", icon: Calendar },
-  { name: "Settings", href: "/settings", icon: Settings },
-];
+import { routes } from "@/config/routes";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -128,7 +107,7 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2 md:space-y-3">
-          {navigation.map((item) => {
+          {routes.map((item) => {
             // Active logic
             const isActive =
               item.href === "/"
