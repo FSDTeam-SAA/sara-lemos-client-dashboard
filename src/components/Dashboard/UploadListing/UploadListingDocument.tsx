@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, X, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useUploadListingManual } from "@/lib/hooks/useListing";
 import { useState } from "react";
@@ -15,11 +15,12 @@ export default function UploadListingDocument() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleUpload = async (selectedFile: File) => {
-    setFile(selectedFile);
+  const handleGenerate = async () => {
+    if (!file) return;
+
     const formData = new FormData();
-    // FormData.append uses the original file object, preserving original name
-    formData.append("pdf", selectedFile);
+    formData.append("pdf", file);
+
     try {
       const response = await uploadListingManual(formData);
       console.log("Upload successful:", response);
@@ -40,9 +41,24 @@ export default function UploadListingDocument() {
     }
   };
 
+  const handleFileSelect = (selectedFile: File) => {
+    setFile(selectedFile);
+  };
+
+  const handleRemoveFile = () => {
+    setFile(null);
+    // Reset file input
+    const fileInput = document.getElementById(
+      "file-upload",
+    ) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = "";
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      handleUpload(e.target.files[0]);
+      handleFileSelect(e.target.files[0]);
     }
   };
 
@@ -59,7 +75,7 @@ export default function UploadListingDocument() {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleUpload(e.dataTransfer.files[0]);
+      handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
@@ -134,14 +150,36 @@ export default function UploadListingDocument() {
             />
 
             {/* Buttons */}
-            <div className="flex gap-4">
-              {!isPending && (
-                <label
-                  htmlFor="file-upload"
-                  className="bg-[#65A30D] hover:bg-[#5a8f0c] text-white transition text-sm font-semibold px-8 py-2.5 rounded-lg cursor-pointer"
-                >
-                  {file ? "Change File" : "Select File"}
-                </label>
+            <div className="flex flex-col justify-center sm:flex-row gap-3 w-full max-w-md">
+              <div>
+                {!isPending && !file && (
+                  <label
+                    htmlFor="file-upload"
+                    className="bg-[#65A30D] hover:bg-[#5a8f0c] text-white transition text-sm font-semibold px-8 py-2.5 rounded-lg cursor-pointer text-center"
+                  >
+                    Select File
+                  </label>
+                )}
+              </div>
+
+              {file && !isPending && (
+                <>
+                  <button
+                    onClick={handleGenerate}
+                    className="flex-1 bg-[#65A30D] hover:bg-[#5a8f0c] text-white transition text-sm font-semibold px-6 py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Sparkles size={16} />
+                    Generate
+                  </button>
+
+                  <button
+                    onClick={handleRemoveFile}
+                    className="flex-1 sm:flex-initial bg-red-50 hover:bg-red-100 text-red-600 transition text-sm font-semibold px-6 py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <X size={16} />
+                    Remove
+                  </button>
+                </>
               )}
             </div>
 
