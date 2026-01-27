@@ -13,18 +13,25 @@ const CardOverview: React.FC<CardOverviewProps> = ({
   icon,
 }) => {
   return (
-    <Card className="p-5 w-[372px] rounded-xl shadow-sm">
+    <Card className="w-full rounded-xl shadow-sm p-4 sm:p-5">
       <CardContent className="p-0">
         {/* Number + Icon */}
-        <div className="flex justify-between items-center">
-          <div className="text-5xl font-bold text-[#65A30D]">{numberInfo}</div>
-          <div className="text-xl [&>svg]:w-8 [&>svg]:h-8 bg-[#F0F6E7] text-[#65A30D] rounded-full p-4">
-            {icon}
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#65A30D] leading-none">
+            {numberInfo}
+          </div>
+
+          <div className="bg-[#F0F6E7] text-[#65A30D] rounded-full p-3 sm:p-4 shrink-0 flex items-center justify-center">
+            <span className="[&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-7 sm:[&>svg]:h-7">
+              {icon}
+            </span>
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="text-[#343A40] font-semibold text-2xl mb-3">{title}</h3>
+        <h3 className="mt-4 text-[#343A40] font-semibold text-base sm:text-lg lg:text-2xl">
+          {title}
+        </h3>
       </CardContent>
     </Card>
   );

@@ -59,14 +59,6 @@ export default function RecentOverview({ listings = [] }: RecentOverviewProps) {
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-gray-500">
-                  <th className="py-2 text-left">Yacht Name</th>
-                  <th className="py-2 text-left">Price</th>
-                  <th className="py-2 text-left">Created At</th>
-                  <th className="py-2 text-left">Status</th>
-                </tr>
-              </thead>
               <tbody>
                 {listings.length > 0 ? (
                   listings.slice(0, 5).map((row) => (
