@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, PhoneCall, Plus, Zap } from "lucide-react";
+import { Clock, Clock3, PhoneCall, Plus, Zap } from "lucide-react";
 import { AskForHelpModal } from "./AskForHelpModal";
 import Link from "next/link";
 
@@ -28,7 +28,7 @@ export default function QuickActions() {
         </h2>
 
         {/* ✅ Responsive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* ✅ Card 1 */}
           <Link href="/listings" className="block h-full">
             <div className={cardBase}>
@@ -58,6 +58,20 @@ export default function QuickActions() {
           </Link>
 
           {/* ✅ Card 3 */}
+          <Link href="/saved-drafts" className="block h-full">
+            <div className={cardBase}>
+              <div className="shrink-0 rounded-full bg-[#F59E0B1A] p-3 transition-transform group-hover:scale-[1.03]">
+                <Clock3 className="text-[#F59E0B] size-5 sm:size-6" />
+              </div>
+
+              <div className="min-w-0">
+                <h3 className={title}>Saved Drafts</h3>
+                <p className={desc}>View your saved drafts</p>
+              </div>
+            </div>
+          </Link>
+
+          {/* ✅ Card 4 */}
           <button
             type="button"
             className={`${cardBase} text-left cursor-pointer`}
