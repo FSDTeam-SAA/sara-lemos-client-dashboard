@@ -1,4 +1,10 @@
-import { Anchor, CreditCard, FileText, LucideIcon } from "lucide-react";
+import {
+  Anchor,
+  CreditCard,
+  FileText,
+  LucideIcon,
+  SquarePlus,
+} from "lucide-react";
 import {
   Calendar,
   Ship,
@@ -51,9 +57,17 @@ export const routes: RouteConfig[] = [
     name: "Content Generator",
     href: "/content-generator",
     icon: WandSparkles,
+    title: "AI Content Generator",
+    subtitle: "Create professional content powered by AI",
+  },
+  {
+    name: "Post Generator",
+    href: "/post-generator",
+    icon: SquarePlus,
     title: "Content Generator",
     subtitle: "Create professional social media content powered by AI",
   },
+
   {
     name: "Saved Drafts",
     href: "/saved-drafts",

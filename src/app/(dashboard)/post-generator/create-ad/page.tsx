@@ -1,4 +1,4 @@
-import CreateAd from "@/components/Dashboard/ContentGenerator/CreateAd/CreateAd";
+import CreateAd from "@/components/Dashboard/ContentGenerator1/CreateAd/CreateAd";
 export default function page() {
   return (
     <div>

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import AdDetailsPage from "@/components/Dashboard/ContentGenerator/AdDetailsPage/AdDetailsPage";
+import AdDetailsPage from "@/components/Dashboard/ContentGenerator1/AdDetailsPage/AdDetailsPage";
 
 export default function Page() {
   return (

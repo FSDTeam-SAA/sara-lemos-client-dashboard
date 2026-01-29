@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function ContentGenerator() {
   return (
     <div className="flex justify-center items-center text-center">
-      <Link href="/content-generator/create-ad">
+      <Link href="/post-generator/create-ad">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10 hover:bg-gray-50 text-center ">
           <div className="flex justify-center">
             {/* Icon */}
