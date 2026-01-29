@@ -346,7 +346,7 @@ export default function AdDetailsPage() {
     <div className="min-h-screen bg-gray-50/50 p-8">
       <div className="max-w-5xl mx-auto space-y-8">
         <Link
-          href="/content-generator/create-ad"
+          href="/post-generator/create-ad"
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#65A30D] transition-colors"
         >
           <ChevronLeft size={16} />

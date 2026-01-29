@@ -37,8 +37,15 @@ export default function EditSavedDraft() {
     formState: { errors },
   } = useForm<EditDraftFormData>();
 
+  const [imageFile, setImageFile] = React.useState<File | null>(null);
+  const [userPreviewUrl, setUserPreviewUrl] = React.useState<string | null>(
+    null,
+  );
+
   // API returns single object in data, not array
   const post = draftData?.data;
+
+  const previewUrl = userPreviewUrl || (post?.media?.[0]?.url ?? null);
 
   useEffect(() => {
     if (post) {
@@ -47,20 +54,37 @@ export default function EditSavedDraft() {
     }
   }, [post, setValue]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setUserPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const onSubmit = (data: EditDraftFormData) => {
     if (!id || !post) return;
 
-    // Construct payload matching the API structure roughly, or what the edit endpoint expects
-    // Based on user request "Automatically pre-fill... modify previously saved drafts"
-    const payload = {
-      listingName: data.listingName,
-      content: {
-        ...post.content,
-        message: data.message,
-      },
-    };
+    const formData = new FormData();
+    formData.append("content", JSON.stringify({ message: data.message }));
+    formData.append("postType", post.postType || "SINGLE_IMAGE");
+    formData.append(
+      "platforms",
+      JSON.stringify(post.platforms || ["facebook"]),
+    );
+    formData.append(
+      "scheduledTime",
+      post.updatedAt || new Date().toISOString(),
+    );
 
-    editDraft(payload, {
+    if (imageFile) {
+      formData.append("postImages", imageFile);
+    } else if (post.media && post.media.length > 0) {
+      // If no new image, send the existing URL as mediaurls to persist it
+      formData.append("mediaurls", JSON.stringify([post.media[0].url]));
+    }
+
+    editDraft(formData, {
       onSuccess: () => {
         toast.success("Draft updated successfully");
         router.push("/saved-drafts");
@@ -129,11 +153,9 @@ export default function EditSavedDraft() {
                 Listing Name
               </label>
               <input
-                {...register("listingName", {
-                  required: "Listing name is required",
-                })}
+                readOnly
                 type="text"
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-not-allowed"
                 placeholder="Enter listing name"
               />
               {errors.listingName && (
@@ -166,14 +188,14 @@ export default function EditSavedDraft() {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="rounded-xl border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                className="rounded-xl border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-600 transition cursor-pointer hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl bg-[#65A30D] px-6 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#65A30D] disabled:opacity-50 cursor-pointer"
               >
                 <Save className="h-4 w-4" />
                 {isSaving ? "Saving..." : "Save Changes"}
@@ -188,20 +210,37 @@ export default function EditSavedDraft() {
             <h3 className="mb-4 text-sm font-bold text-gray-900">
               Media Preview
             </h3>
-            {post.media && post.media.length > 0 ? (
-              <div className="overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+            {previewUrl ? (
+              <div className="relative overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
                 <Image
-                  src={post.media[0].url}
+                  src={previewUrl}
                   alt="Preview"
                   width={400}
                   height={400}
                   className="h-auto w-full object-cover"
                 />
+                <label className="absolute bottom-4 right-4 flex cursor-pointer items-center gap-2 rounded-lg bg-white/90 px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-sm transition hover:bg-white">
+                  <Save className="h-3 w-3" />
+                  Change Image
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
               </div>
             ) : (
-              <div className="flex h-48 w-full items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 text-gray-400">
-                No media available
-              </div>
+              <label className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 text-gray-400 transition hover:bg-gray-100">
+                <Save className="mb-2 h-8 w-8" />
+                <span className="text-xs">Upload Screenshot</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </label>
             )}
           </div>
         </div>
