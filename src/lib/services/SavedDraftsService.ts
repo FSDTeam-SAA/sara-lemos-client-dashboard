@@ -3,7 +3,6 @@ import axiosInstance from "../instance/axios-instance";
 import {
   FacebookPostResponse,
   SingleFacebookPostResponse,
-  FacebookPost,
 } from "@/types/facebook";
 
 // get saved drafts
@@ -23,7 +22,7 @@ export const getSavedDrafts = async (
 // edit saved drafts
 export const editSavedDrafts = async (
   id: string,
-  data: Partial<FacebookPost>,
+  data: FormData | Record<string, unknown>,
 ): Promise<FacebookPostResponse> => {
   try {
     const response = await axiosInstance.put<FacebookPostResponse>(
