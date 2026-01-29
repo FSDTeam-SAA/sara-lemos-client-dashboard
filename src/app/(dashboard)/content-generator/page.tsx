@@ -1,4 +1,4 @@
-import ContentGenerator from "@/components/Dashboard/PostGenerator/PostGenerator";
+import ContentGenerator from "@/components/Dashboard/ContentGenerator/ContentGenerator";
 
 export default function page() {
   return (
