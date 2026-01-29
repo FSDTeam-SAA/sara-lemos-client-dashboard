@@ -1,13 +1,12 @@
 // src/lib/hooks/useOverview.ts
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteSavedDrafts,
   editSavedDrafts,
   getSavedDrafts,
   getSingleSavedDrafts,
 } from "../services/SavedDraftsService";
-import { FacebookPost } from "@/types/facebook";
 
 // Type definition for ask for help data
 export interface AskForHelpData {
@@ -28,7 +27,8 @@ export function useGetSavedDrafts(status: string) {
 // edit saved drafts
 export function useEditSavedDrafts(id: string) {
   return useMutation({
-    mutationFn: (data: Partial<FacebookPost>) => editSavedDrafts(id, data),
+    mutationFn: (data: FormData | Record<string, unknown>) =>
+      editSavedDrafts(id, data),
   });
 }
 
@@ -42,8 +42,13 @@ export function useGetSingleSavedDrafts(id: string) {
 }
 
 // delete saved drafts
-export function useDeleteSavedDrafts(id: string) {
+export function useDeleteSavedDrafts() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: () => deleteSavedDrafts(id),
+    mutationFn: (id: string) => deleteSavedDrafts(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["savedDrafts"] });
+    },
   });
 }

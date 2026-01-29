@@ -153,7 +153,7 @@ export default function CreateAd() {
                         ? `act_${adAccountId}`
                         : "";
                       router.push(
-                        `/content-generator/create-ad/ad-details?pageId=${page.pageId}&adAccountId=${formattedAdAccountId}`,
+                        `/post-generator/create-ad/ad-details?pageId=${page.pageId}&adAccountId=${formattedAdAccountId}`,
                       );
                     }}
                     className="group relative flex flex-col p-8 bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-4xl shadow-xs hover:shadow-2xl hover:shadow-[#65A30D]/10 hover:border-[#65A30D]/40 transition-all duration-500 text-left overflow-hidden cursor-pointer active:scale-[0.98]"

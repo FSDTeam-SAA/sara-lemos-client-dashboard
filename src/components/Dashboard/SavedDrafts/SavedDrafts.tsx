@@ -14,10 +14,16 @@ import {
   FileText,
   AlertCircle,
   Facebook,
+  Loader2,
 } from "lucide-react";
-import { useGetSavedDrafts } from "@/lib/hooks/useSavedDrafts";
+import {
+  useGetSavedDrafts,
+  useDeleteSavedDrafts,
+} from "@/lib/hooks/useSavedDrafts";
+import { toast } from "sonner";
 import { FacebookPost, FacebookPostStatus } from "@/types/facebook";
 import Image from "next/image";
+import { ViewDraftModal } from "./ViewDraftModal";
 
 const TABS = [
   { key: "DRAFT", label: "Draft" },
@@ -125,8 +131,26 @@ function ScheduleRow({ scheduledAt }: { scheduledAt: string }) {
   );
 }
 
-function PostCard({ post }: { post: FacebookPost }) {
+function PostCard({
+  post,
+  onView,
+}: {
+  post: FacebookPost;
+  onView: (post: FacebookPost) => void;
+}) {
   const imageUrl = post.media && post.media.length > 0 ? post.media[0].url : "";
+  const { mutate: deleteDraft, isPending: isDeleting } = useDeleteSavedDrafts();
+
+  const handleDelete = () => {
+    deleteDraft(post._id, {
+      onSuccess: () => {
+        toast.success("Post deleted successfully");
+      },
+      onError: () => {
+        toast.error("Failed to delete post");
+      },
+    });
+  };
 
   // Placeholder stats - replace when API supports it
   const stats = { views: 0, likes: 0, comments: 0 };
@@ -176,7 +200,10 @@ function PostCard({ post }: { post: FacebookPost }) {
 
         {/* actions */}
         <div className="mt-4 flex items-center gap-2">
-          <button className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#65A30D] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5b910e] cursor-pointer">
+          <button
+            onClick={() => onView(post)}
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#65A30D] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5b910e] cursor-pointer"
+          >
             <Eye className="h-4 w-4" />
             View
           </button>
@@ -193,9 +220,15 @@ function PostCard({ post }: { post: FacebookPost }) {
 
           <button
             aria-label="Delete"
-            className="grid h-11 w-11 place-items-center rounded-xl border border-red-200 bg-white text-red-500 transition hover:bg-red-50 cursor-pointer"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="grid h-11 w-11 place-items-center rounded-xl border border-red-200 bg-white text-red-500 transition hover:bg-red-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Trash2 className="h-4 w-4" />
+            {isDeleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
@@ -205,9 +238,10 @@ function PostCard({ post }: { post: FacebookPost }) {
 
 export default function SavedDrafts() {
   const [activeTab, setActiveTab] = useState<TabKey>("DRAFT");
+  const [selectedPost, setSelectedPost] = useState<FacebookPost | null>(null);
   const { data: savedDrafts, isLoading } = useGetSavedDrafts(activeTab);
 
-  console.log(savedDrafts);
+  // console.log(savedDrafts);
 
   const posts = savedDrafts?.data || [];
 
@@ -253,7 +287,11 @@ export default function SavedDrafts() {
           ) : posts.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (
-                <PostCard key={post._id} post={post} />
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  onView={(p) => setSelectedPost(p)}
+                />
               ))}
             </div>
           ) : (
@@ -263,6 +301,12 @@ export default function SavedDrafts() {
           )}
         </div>
       </div>
+
+      <ViewDraftModal
+        isOpen={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+        post={selectedPost}
+      />
     </div>
   );
 }
