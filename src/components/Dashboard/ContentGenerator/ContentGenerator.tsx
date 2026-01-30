@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 import { useGenerateContent } from "@/lib/hooks/useContentGenerator";
 import { GenerateContentPayload } from "@/lib/services/contentGeneratorService";
+import { Campaign } from "@/lib/services/campaignService";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import { useGetUserIdByUserData } from "@/lib/hooks/useSocialAccounts";
 
 type Platform = "facebook" | "instagram";
 
@@ -44,9 +47,25 @@ export default function ContentGenerator() {
     useState<(typeof postTypes)[number]>("Teaser");
   const [promptText, setPromptText] = useState("");
   const [content, setContent] = useState("");
+  const [selectedCampaignId, setSelectedCampaignId] = useState("");
 
   const { mutateAsync: handleGenerateContent, isPending } =
     useGenerateContent();
+
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const { data: userData, isLoading } = useGetUserIdByUserData(
+    userId as string,
+  );
+
+  // Extract campaigns from userData
+  // Based on structure: { data: [{ page, campaigns: [{_id, name}], ad sets, etc. }] }
+  const campaigns = useMemo(() => {
+    if (!userData?.data || !Array.isArray(userData.data)) return [];
+    return userData.data.flatMap(
+      (item: { campaigns?: Campaign[] }) => item.campaigns || [],
+    );
+  }, [userData]);
 
   // ✅ Contact states
   const [includeContact, setIncludeContact] = useState(true);
@@ -145,7 +164,7 @@ export default function ContentGenerator() {
     }
   };
 
-  // ✅ Contact -> content এ append (স্ক্রিনশটের Add to Content এর মতো)
+  // Contact
   const onAddContactToContent = () => {
     if (!includeContact) return;
 
@@ -163,7 +182,7 @@ export default function ContentGenerator() {
   return (
     <div className="w-full px-4 md:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* ✅ Left Sidebar (Configuration + Contact) */}
+        {/* Left Sidebar (Configuration + Contact) */}
         <div className="lg:col-span-4 space-y-6">
           {/* Configuration */}
           <div className={`${baseCard} p-6`}>
@@ -200,6 +219,29 @@ export default function ContentGenerator() {
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               </div>
             </div>
+
+            {/* Campaign Selection */}
+            {/* <div className="mb-5">
+              <div className={label}>Select Campaign</div>
+              <div className="relative mt-2">
+                <select
+                  value={selectedCampaignId}
+                  onChange={(e) => setSelectedCampaignId(e.target.value)}
+                  className={`${inputBase} appearance-none pr-10`}
+                  disabled={isLoading}
+                >
+                  <option value="">
+                    {isLoading ? "Loading campaigns..." : "Select a campaign"}
+                  </option>
+                  {campaigns.map((c: Campaign) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              </div>
+            </div> */}
 
             {/* Platform */}
             <div className="mb-5">
