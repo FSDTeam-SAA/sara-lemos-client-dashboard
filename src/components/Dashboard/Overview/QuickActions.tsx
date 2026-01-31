@@ -30,7 +30,7 @@ export default function QuickActions() {
         {/* ✅ Responsive Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* ✅ Card 1 */}
-          <Link href="/listings" className="block h-full">
+          <Link href="/upload-listing" className="block h-full">
             <div className={cardBase}>
               <div className={iconWrap}>
                 <Plus className="text-[#65A30D] size-5 sm:size-6" />
@@ -44,7 +44,7 @@ export default function QuickActions() {
           </Link>
 
           {/* ✅ Card 2 */}
-          <Link href="/content-generator/create-ad" className="block h-full">
+          <Link href="/content-generator" className="block h-full">
             <div className={cardBase}>
               <div className="shrink-0 rounded-full bg-[#3B82F61A] p-3 transition-transform group-hover:scale-[1.03]">
                 <Zap className="text-[#3B82F6] size-5 sm:size-6" />

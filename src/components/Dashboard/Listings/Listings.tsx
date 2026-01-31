@@ -22,7 +22,16 @@ export default function Listings() {
   };
 
   if (isLoading) {
-    return <div className="p-4">Loading listings...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px] p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-[#65A30D]" />
+          <p className="text-sm text-gray-500 animate-pulse">
+            Loading listings...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
