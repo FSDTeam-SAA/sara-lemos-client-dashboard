@@ -61,6 +61,13 @@ export const routes: RouteConfig[] = [
     title: "Saved Drafts",
     subtitle: "View and edit your saved content",
   },
+  // {
+  //   name: "Schedule Posts",
+  //   href: "/schedule-posts",
+  //   icon: Calendar,
+  //   title: "Schedule Post",
+  //   subtitle: "Choose when to publish your content",
+  // },
   {
     name: "Social Accounts",
     href: "/social-accounts",
