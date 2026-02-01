@@ -2,6 +2,7 @@ import {
   Anchor,
   CreditCard,
   FileText,
+  LayoutDashboard,
   LucideIcon,
   SquarePlus,
 } from "lucide-react";
@@ -28,7 +29,7 @@ export const routes: RouteConfig[] = [
   {
     name: "Dashboard Overview",
     href: "/",
-    icon: HardDrive,
+    icon: LayoutDashboard,
     title: "Dashboard",
     subtitle: "See your updates today!",
   },
@@ -47,13 +48,6 @@ export const routes: RouteConfig[] = [
     subtitle: "Choose how you'd like to create your yacht listing",
   },
   {
-    name: "Social Accounts",
-    href: "/social-accounts",
-    icon: Globe,
-    title: "Social Media Accounts",
-    subtitle: "Connect and manage your social media accounts",
-  },
-  {
     name: "Content Generator",
     href: "/content-generator",
     icon: WandSparkles,
@@ -61,20 +55,34 @@ export const routes: RouteConfig[] = [
     subtitle: "Create professional content powered by AI",
   },
   {
-    name: "Post Generator",
-    href: "/post-generator",
-    icon: SquarePlus,
-    title: "Post Generator",
-    subtitle: "Create professional post for social media content powered by AI",
-  },
-
-  {
     name: "Saved Drafts",
     href: "/saved-drafts",
     icon: FileText,
     title: "Saved Drafts",
     subtitle: "View and edit your saved content",
   },
+  // {
+  //   name: "Schedule Posts",
+  //   href: "/schedule-posts",
+  //   icon: Calendar,
+  //   title: "Schedule Post",
+  //   subtitle: "Choose when to publish your content",
+  // },
+  {
+    name: "Social Accounts",
+    href: "/social-accounts",
+    icon: Globe,
+    title: "Social Media Accounts",
+    subtitle: "Connect and manage your social media accounts",
+  },
+  // {
+  //   name: "Post Generator",
+  //   href: "/post-generator",
+  //   icon: SquarePlus,
+  //   title: "Post Generator",
+  //   subtitle: "Create professional post for social media content powered by AI",
+  // },
+
   {
     name: "Subscription",
     href: "/subscription",

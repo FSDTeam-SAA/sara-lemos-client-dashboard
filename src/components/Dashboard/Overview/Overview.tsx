@@ -41,13 +41,13 @@ export default function Overview() {
           />
 
           <CardOverview
-            title="Total Campaigns"
+            title="Content Generated"
             numberInfo={counts?.campaigns || 0}
             icon={<Zap />}
           />
 
           <CardOverview
-            title="Content Generated"
+            title="Time Saved"
             numberInfo={counts?.contentGenerated || 0}
             icon={<Clock4 />}
           />

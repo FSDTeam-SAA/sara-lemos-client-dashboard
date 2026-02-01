@@ -6,15 +6,17 @@ import { type Listing } from "@/lib/services/listingService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, PencilLine, Trash2 } from "lucide-react";
 import { ListingDetailModal } from "./ListingDetailModal";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function Listings() {
   const { data, isLoading, error } = useListing();
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { mutateAsync: deleteListing } = useDeleteListing();
+  const router = useRouter();
 
   const handleViewDetails = (listing: Listing) => {
     setSelectedListing(listing);
@@ -22,7 +24,16 @@ export default function Listings() {
   };
 
   if (isLoading) {
-    return <div className="p-4">Loading listings...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px] p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-[#65A30D]" />
+          <p className="text-sm text-gray-500 animate-pulse">
+            Loading listings...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -144,6 +155,15 @@ export default function Listings() {
                       >
                         <Eye className="w-4 h-4 text-blue-500" />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.push("/content-generator")}
+                        className="cursor-pointer"
+                      >
+                        <PencilLine className="w-4 h-4 text-[#65A30D]" />
+                      </Button>
+
                       <Button
                         variant="ghost"
                         size="icon"
