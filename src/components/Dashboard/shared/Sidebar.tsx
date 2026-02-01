@@ -121,7 +121,7 @@ export default function Sidebar() {
                 className={cn(
                   "flex items-center gap-3 rounded-lg p-3 py-5 min-h-[44px] text-base leading-[150%] tracking-[0%] font-semibold transition-colors touch-manipulation",
                   isActive
-                    ? "bg-[#F8F9FA] text-[#65A30D] font-bold text-[16px]"
+                    ? "bg-[#65A30D1A] text-[#65A30D] font-bold text-[16px]"
                     : "text-[#65A30D] hover:bg-[#F8F9FA] hover:text-[#65A30D] font-normal active:bg-[#F8F9FA]",
                 )}
               >

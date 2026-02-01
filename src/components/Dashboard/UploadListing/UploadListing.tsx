@@ -26,7 +26,7 @@ export default function UploadListing() {
             </p>
 
             {/* Badges */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-[#65A30D]">
                 Recommended
               </span>

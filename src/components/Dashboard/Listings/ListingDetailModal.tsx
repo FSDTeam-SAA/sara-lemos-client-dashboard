@@ -279,7 +279,23 @@ export function ListingDetailModal({
             </div>
 
             {/* Quick Specs Grid */}
+            <h2 className="text-2xl font-bold mb-4">Main Specifications</h2>
+
             <div className="grid grid-cols-2 gap-4 mb-8">
+              <QuickStat
+                Icon={Anchor}
+                label="Builder"
+                value={listing.builder}
+                color="purple"
+              />
+
+              <QuickStat
+                Icon={Zap}
+                label="Model"
+                value={listing.model}
+                color="green"
+              />
+
               <QuickStat
                 Icon={Calendar}
                 label="Year"
@@ -292,49 +308,60 @@ export function ListingDetailModal({
                 value={listing.grossTons}
                 color="blue"
               />
-              <QuickStat
-                Icon={Anchor}
-                label="Builder"
-                value={listing.builder}
-                color="purple"
-              />
-              <QuickStat
-                Icon={Zap}
-                label="Model"
-                value={listing.model}
-                color="green"
-              />
             </div>
 
             {/* Tabbed Info or Grouped Cards */}
             <div className="space-y-6">
               <SectionHeader Icon={Sparkles} label="Interior & Comfort" />
               <div className="grid grid-cols-3 gap-3">
-                <LuxurySpec
-                  Icon={Users}
-                  label="Guests"
-                  value={listing.guestCapacity}
-                />
-                <LuxurySpec
-                  Icon={Bed}
-                  label="Bedrooms"
-                  value={listing.bedRooms}
-                />
+                <LuxurySpec Icon={Ship} label="Cabins" value={listing.cabins} />
                 <LuxurySpec
                   Icon={Bath}
                   label="Bathrooms"
                   value={listing.bathRooms}
                 />
-                <LuxurySpec Icon={Ship} label="Cabins" value={listing.cabins} />
+                <LuxurySpec
+                  Icon={Users}
+                  label="Guests"
+                  value={listing.guestCapacity}
+                />
+
                 <LuxurySpec Icon={Users} label="Crew" value={listing.crew} />
+
+                <LuxurySpec
+                  Icon={Bed}
+                  label="Bedrooms"
+                  value={listing.bedRooms}
+                />
+
                 <LuxurySpec
                   Icon={Users}
                   label="Daily Guests"
                   value={listing.guests}
                 />
               </div>
+              <SectionHeader Icon={Wind} label="Description" />
+              <div className="p-4 bg-gray-50 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100 italic">
+                {listing.description ||
+                  "Indulge in the finest maritime craftsmanship. This vessel offers an unparalleled experience of luxury and performance."}
+              </div>
+
+              {/* Footer / Engine Details */}
+              <div className="mt-auto border-t border-gray-100">
+                <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <div className="flex-1">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                      Engineering Powerhouse
+                    </span>
+                    <p className="text-sm font-bold text-gray-800">
+                      {listing.engineMake} {listing.engineModel}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               <SectionHeader Icon={Fullscreen} label="Technical Dimensions" />
+
               <div className="space-y-3">
                 <DimensionBar
                   label="Length Overall"
@@ -367,29 +394,6 @@ export function ListingDetailModal({
                         </Badge>
                       ),
                   )}
-              </div>
-
-              <SectionHeader Icon={Wind} label="Description" />
-              <div className="p-4 bg-gray-50 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100 italic">
-                {listing.description ||
-                  "Indulge in the finest maritime craftsmanship. This vessel offers an unparalleled experience of luxury and performance."}
-              </div>
-            </div>
-
-            {/* Footer / Engine Details */}
-            <div className="mt-auto pt-8 border-t border-gray-100">
-              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm text-[#65A30D]">
-                  <Wind size={24} />
-                </div>
-                <div className="flex-1">
-                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                    Engineering Powerhouse
-                  </span>
-                  <p className="text-sm font-bold text-gray-800">
-                    {listing.engineMake} {listing.engineModel}
-                  </p>
-                </div>
               </div>
             </div>
 

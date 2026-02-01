@@ -12,21 +12,26 @@ import {
 } from "lucide-react";
 import { useGenerateContent } from "@/lib/hooks/useContentGenerator";
 import { GenerateContentPayload } from "@/lib/services/contentGeneratorService";
+import { Campaign } from "@/lib/services/campaignService";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import { useGetUserIdByUserData } from "@/lib/hooks/useSocialAccounts";
 
 type Platform = "facebook" | "instagram";
 
 const listings = [
   "Azimut Grande 35 Metri",
-  "Sunseeker 90 Ocean",
-  "Benetti Oasis 40M",
+  "Sunseeker 88 Yacht",
+  "Princess 30M",
 ];
+
 const tones = [
   "Professional",
   "Luxury & Exclusive",
   "Casual & Friendly",
   "Exciting & Energetic",
 ] as const;
+
 const postTypes = [
   "Teaser",
   "Launch",
@@ -38,15 +43,34 @@ const postTypes = [
 
 export default function ContentGenerator() {
   const [listing, setListing] = useState(listings[0]);
+
+  // ✅ Keep only ONE platforms state (typed)
   const [platforms, setPlatforms] = useState<Platform[]>(["facebook"]);
+
   const [tone, setTone] = useState<(typeof tones)[number]>("Professional");
   const [postType, setPostType] =
     useState<(typeof postTypes)[number]>("Teaser");
   const [promptText, setPromptText] = useState("");
   const [content, setContent] = useState("");
+  const [selectedCampaignId, setSelectedCampaignId] = useState("");
 
   const { mutateAsync: handleGenerateContent, isPending } =
     useGenerateContent();
+
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  const { data: userData, isLoading } = useGetUserIdByUserData(
+    userId as string,
+  );
+
+  // Extract campaigns from userData
+  const campaigns = useMemo(() => {
+    if (!userData?.data || !Array.isArray(userData.data)) return [];
+    return userData.data.flatMap(
+      (item: { campaigns?: Campaign[] }) => item.campaigns || [],
+    );
+  }, [userData]);
 
   // ✅ Contact states
   const [includeContact, setIncludeContact] = useState(true);
@@ -56,9 +80,15 @@ export default function ContentGenerator() {
 
   const charCount = useMemo(() => content.length, [content]);
 
+  // ✅ Platform toggle logic (same as your earlier logic, multi-select)
+  const togglePlatform = (name: Platform) => {
+    setPlatforms((prev) =>
+      prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name],
+    );
+  };
+
   const baseCard =
     "rounded-2xl border border-[#DCE9C7] bg-white shadow-[0_10px_30px_rgba(17,24,39,0.06)]";
-
   const subtleBg = "bg-[#F6FAF1]";
 
   const label = "text-sm font-semibold text-[#2E5A2E]";
@@ -66,13 +96,14 @@ export default function ContentGenerator() {
     "w-full rounded-xl border border-[#DCE9C7] bg-[#F6FAF1] px-4 py-3 text-sm text-gray-700 outline-none " +
     "focus:border-[#7AAE2A] focus:ring-2 focus:ring-[#7AAE2A]/20";
 
-  const pillBtn =
-    "flex items-center justify-center gap-2 rounded-xl border px-4 py-4 text-sm font-semibold transition " +
+  // ✅ Screenshot-like platform button styles
+  const platformBtnBase =
+    "flex items-center justify-center gap-2 rounded-xl border px-6 py-5 text-base font-semibold transition-all " +
     "focus:outline-none focus:ring-2 focus:ring-[#7AAE2A]/25";
 
-  const activePill =
-    "border-[#7AAE2A] bg-[#F6FAF1] text-[#2E5A2E] shadow-[inset_0_0_0_1px_rgba(122,174,42,0.25)]";
-  const idlePill = "border-gray-200 bg-white text-gray-500 hover:bg-gray-50";
+  const platformActive = "border-[#65A30D] bg-[#F0F6E7] text-[#65A30D]";
+  const platformInactive =
+    "border-gray-300 bg-white text-gray-500 hover:border-gray-400";
 
   const primaryBtn =
     "w-full rounded-xl bg-[#76A91F] py-3.5 text-white font-bold shadow-[0_12px_22px_rgba(118,169,31,0.25)] " +
@@ -92,7 +123,6 @@ export default function ContentGenerator() {
     "focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30";
 
   const onGenerate = async () => {
-    // Validation
     if (!promptText.trim()) {
       toast.error("Please enter a prompt for generated content.");
       return;
@@ -103,7 +133,6 @@ export default function ContentGenerator() {
       return;
     }
 
-    // Construct dynamic payload
     const payload: GenerateContentPayload = {
       tone,
       postType: `${postType}: ${promptText}`,
@@ -118,6 +147,8 @@ export default function ContentGenerator() {
 
     try {
       const response = await handleGenerateContent(payload);
+
+      // NOTE: If your API returns string, keep this
       if (response.success && response.data) {
         setContent(response.data);
         toast.success(response.message || "Content generated successfully!");
@@ -127,12 +158,14 @@ export default function ContentGenerator() {
     } catch (error: unknown) {
       console.error("API Error:", error);
       let errorMessage = "Something went wrong while generating content.";
+
       if (error instanceof Error) {
         const axiosError = error as Error & {
           response?: { data?: { message?: string } };
         };
         errorMessage = axiosError.response?.data?.message || error.message;
       }
+
       toast.error(errorMessage);
     }
   };
@@ -140,12 +173,12 @@ export default function ContentGenerator() {
   const onCopy = async () => {
     try {
       await navigator.clipboard.writeText(content || "");
+      toast.success("Copied!");
     } catch {
-      // ignore
+      toast.error("Failed to copy!");
     }
   };
 
-  // ✅ Contact -> content এ append (স্ক্রিনশটের Add to Content এর মতো)
   const onAddContactToContent = () => {
     if (!includeContact) return;
 
@@ -163,16 +196,16 @@ export default function ContentGenerator() {
   return (
     <div className="w-full px-4 md:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* ✅ Left Sidebar (Configuration + Contact) */}
+        {/* Left Sidebar */}
         <div className="lg:col-span-4 space-y-6">
           {/* Configuration */}
           <div className={`${baseCard} p-6`}>
-            <h2 className="text-xl font-extrabold text-[#65A30D] mb-5">
+            <h2 className="text-xl font-bold text-[#65A30D] mb-5">
               Configuration
             </h2>
 
-            {/* Generated Content Prompt */}
-            <div className="mb-5">
+            {/* Prompt */}
+            {/* <div className="mb-5">
               <div className={label}>Generated Content Prompt</div>
               <textarea
                 value={promptText}
@@ -180,7 +213,7 @@ export default function ContentGenerator() {
                 placeholder="Enter prompt ..."
                 className={`${inputBase} mt-2 min-h-[80px]`}
               />
-            </div>
+            </div> */}
 
             {/* Listing */}
             <div className="mb-5">
@@ -192,7 +225,11 @@ export default function ContentGenerator() {
                   className={`${inputBase} appearance-none pr-10`}
                 >
                   {listings.map((l) => (
-                    <option key={l} value={l}>
+                    <option
+                      key={l}
+                      value={l}
+                      className="text-[#65A30D] cursor-pointer"
+                    >
                       {l}
                     </option>
                   ))}
@@ -201,42 +238,64 @@ export default function ContentGenerator() {
               </div>
             </div>
 
-            {/* Platform */}
+            {/* Campaign Selection (optional) */}
+            {/* 
             <div className="mb-5">
+              <div className={label}>Select Campaign</div>
+              <div className="relative mt-2">
+                <select
+                  value={selectedCampaignId}
+                  onChange={(e) => setSelectedCampaignId(e.target.value)}
+                  className={`${inputBase} appearance-none pr-10`}
+                  disabled={isLoading}
+                >
+                  <option value="">
+                    {isLoading ? "Loading campaigns..." : "Select a campaign"}
+                  </option>
+                  {campaigns.map((c: Campaign) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              </div>
+            </div> 
+            */}
+
+            {/* ✅ Platform (Screenshot style) */}
+            <div className="mb-6">
               <div className={label}>Platform</div>
+
               <div className="mt-3 grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() =>
-                    setPlatforms((prev) =>
-                      prev.includes("facebook")
-                        ? prev.filter((p) => p !== "facebook")
-                        : [...prev, "facebook"],
-                    )
-                  }
-                  className={`${pillBtn} ${
-                    platforms.includes("facebook") ? activePill : idlePill
+                  onClick={() => togglePlatform("facebook")}
+                  className={`${platformBtnBase} cursor-pointer ${
+                    platforms.includes("facebook")
+                      ? platformActive
+                      : platformInactive
                   }`}
                 >
-                  <Facebook className="h-5 w-5" />
-                  Facebook
+                  <div className="items-center gap-2">
+                    <Facebook className="h-6 w-6 text-blue-500 ml-6 mb-2" />
+                    Facebook
+                  </div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setPlatforms((prev) =>
-                      prev.includes("instagram")
-                        ? prev.filter((p) => p !== "instagram")
-                        : [...prev, "instagram"],
-                    )
-                  }
-                  className={`${pillBtn} ${
-                    platforms.includes("instagram") ? activePill : idlePill
+                  onClick={() => togglePlatform("instagram")}
+                  className={`${platformBtnBase} cursor-pointer ${
+                    platforms.includes("instagram")
+                      ? platformActive
+                      : platformInactive
                   }`}
                 >
-                  <Instagram className="h-5 w-5" />
-                  Instagram
+                  <div className="items-center gap-2">
+                    <Instagram className="h-6 w-6 text-red-400 ml-6 mb-2" />
+                    Instagram
+                  </div>
                 </button>
               </div>
             </div>
@@ -280,7 +339,7 @@ export default function ContentGenerator() {
             </button>
           </div>
 
-          {/* ✅ Contact Information (Sidebar card) */}
+          {/* Contact Information */}
           <div className={`${baseCard} p-6`}>
             <h2 className="text-xl font-extrabold text-[#65A30D]">
               Contact Information
@@ -336,7 +395,6 @@ export default function ContentGenerator() {
                 className={addToContentBtn}
                 disabled={!includeContact}
               >
-                <Plus className="h-4 w-4 cursor-pointer" />
                 Add to Content
               </button>
             </div>
