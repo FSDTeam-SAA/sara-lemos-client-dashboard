@@ -22,6 +22,7 @@ const UserSidebar = () => {
     email: session?.user?.email || "",
     phone: "",
     location: "",
+    bio:'',
   };
 
   const { mutate: uploadAvatar, isPending: isUploading } = useUploadAvatar();
@@ -44,7 +45,7 @@ const UserSidebar = () => {
 
   if (isLoading) {
     return (
-      <aside className="w-full max-w-sm">
+      <aside className="w-full  max-w-sm">
         <div className="bg-white rounded-lg overflow-hidden border border-gray-200 animate-pulse">
           <div className="h-24 bg-gray-200"></div>
           <div className="px-6 pb-6">
@@ -63,10 +64,10 @@ const UserSidebar = () => {
       </aside>
     );
   }
-
+ console.log('bio',data)
   return (
-    <aside className="w-full max-w-sm">
-      <div className="bg-white rounded-lg overflow-hidden border border-gray-200">
+    <aside className="w-full max-w-sm bg-white">
+      <div className="bg-white rounded-lg overflow-hidden border h-full border-gray-200">
         {/* Header Background */}
         <div
           className="h-24 opacity-80"
@@ -112,7 +113,7 @@ const UserSidebar = () => {
           <h2 className="text-center font-semibold text-gray-900 text-lg mb-1">
             {profileData.firstName} {profileData.lastName}
           </h2>
-          {/* <p className="text-center text-gray-600 text-sm mb-6">User ID: {id}</p> */}
+          {/* <p className="text-center text-gray-600 text-sm mb-6">Bio: {id}</p> */}
 
           {/* Info Items */}
           <div className="space-y-4 border-t border-gray-200 pt-6">
@@ -123,6 +124,10 @@ const UserSidebar = () => {
                   [profileData.firstName, profileData.lastName]
                     .filter(Boolean)
                     .join(" ") || "N/A",
+              },
+              {
+                label:"Bio:",
+                value:profileData.bio || "N/A"
               },
               {
                 label: "Email:",
