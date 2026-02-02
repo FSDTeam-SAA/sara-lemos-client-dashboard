@@ -93,29 +93,7 @@ const UserDetailsPresenter = ({
             />
           </div>
 
-          {/* Bio Row */}
-          <div className="grid grid-cols-1 gap-6">
-            <FormField
-              control={form.control}
-              name="bio"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">
-                    Bio
-                  </FormLabel>
-                  <FormControl>
-                    <textarea
-                      placeholder="Tell us about yourself"
-                      {...field}
-                      className="flex min-h-[80px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 focus:border-teal-600 focus:ring-teal-600"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
+       
           {/* Email and Phone Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
@@ -158,6 +136,29 @@ const UserDetailsPresenter = ({
               )}
             />
           </div>
+             {/* Bio Row */}
+          <div className="grid grid-cols-1 gap-6">
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 font-medium">
+                    Bio
+                  </FormLabel>
+                  <FormControl>
+                    <textarea
+                      placeholder="Tell us about yourself"
+                      {...field}
+                      className="flex min-h-[80px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 focus:border-teal-600 focus:ring-teal-600"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
 
           {/* Location Details Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -282,7 +283,7 @@ const UserDetailsPresenter = ({
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-[#65A30D] cursor-pointer hover:bg-primary/90 text-white"
+              className="bg-[#65A30D]  cursor-pointer hover:bg-[#82cd19] text-white"
             >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>

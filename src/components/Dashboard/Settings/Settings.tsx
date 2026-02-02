@@ -10,7 +10,7 @@ import UserSidebar from "./common/UserSidebar";
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("Profile");
   return (
-    <main className="bg-gray-50 min-h-screen">
+    <main className="bg-[#0000001F] min-h-screen">
       <div className="container  mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
