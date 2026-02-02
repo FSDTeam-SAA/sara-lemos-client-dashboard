@@ -55,11 +55,11 @@ export const routes: RouteConfig[] = [
     subtitle: "Create professional content powered by AI",
   },
   {
-    name: "Saved Drafts",
+    name: "All Content",
     href: "/saved-drafts",
     icon: FileText,
-    title: "Saved Drafts",
-    subtitle: "View and edit your saved content",
+    title: "All Content",
+    subtitle: "View and edit your All Content",
   },
   // {
   //   name: "Schedule Posts",

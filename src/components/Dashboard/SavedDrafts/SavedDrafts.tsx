@@ -251,10 +251,8 @@ export default function SavedDrafts() {
       <div className="mx-auto w-full container">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#0B3B36]">Saved Drafts</h1>
-          <p className="text-sm text-[#0B3B36]/70">
-            Manage your drafted, scheduled, and published posts.
-          </p>
+          <h1 className="text-2xl font-bold text-[#0B3B36]">All Content</h1>
+          <p className="text-sm text-[#0B3B36]/70">Manage your All Content.</p>
         </div>
 
         {/* tabs */}

@@ -70,7 +70,7 @@ const ChangePasswordPresenter = ({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6 max-w-2xl"
+          className="space-y-6 "
         >
           {/* Current Password */}
           <FormField
@@ -264,7 +264,7 @@ const ChangePasswordPresenter = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex justify-end gap-4 pt-6">
             <Button
               type="button"
               variant="outline"

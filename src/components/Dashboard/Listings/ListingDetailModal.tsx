@@ -328,17 +328,17 @@ export function ListingDetailModal({
 
                 <LuxurySpec Icon={Users} label="Crew" value={listing.crew} />
 
-                <LuxurySpec
+                {/* <LuxurySpec
                   Icon={Bed}
                   label="Bedrooms"
                   value={listing.bedRooms}
-                />
+                /> */}
 
-                <LuxurySpec
+                {/* <LuxurySpec
                   Icon={Users}
                   label="Daily Guests"
                   value={listing.guests}
-                />
+                /> */}
               </div>
               <SectionHeader Icon={Wind} label="Description" />
               <div className="p-4 bg-gray-50 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100 italic">
