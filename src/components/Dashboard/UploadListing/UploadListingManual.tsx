@@ -207,8 +207,8 @@ export default function UploadListingManual() {
         newFormState.price = String(matchedData.price);
       if (isValidValue(matchedData.bathRooms))
         newFormState.bathrooms = String(matchedData.bathRooms);
-      if (isValidValue(matchedData.bedRooms))
-        newFormState.bedrooms = String(matchedData.bedRooms);
+      // if (isValidValue(matchedData.bedRooms))
+      //   newFormState.bedrooms = String(matchedData.bedRooms);
       if (isValidValue(matchedData.cabins))
         newFormState.cabins = String(matchedData.cabins);
       if (isValidValue(matchedData.crew))
@@ -762,7 +762,7 @@ export default function UploadListingManual() {
           </div>
 
           {/* ===== Guest Capacity / Bedrooms / Bathrooms ===== */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
                 key: "guestCapacity" as const,
@@ -797,7 +797,7 @@ export default function UploadListingManual() {
                 )}
               </div>
             ))}
-          </div>
+          </div> */}
 
           {/* ===== Cabins / Guests / Crew ===== */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -814,8 +814,8 @@ export default function UploadListingManual() {
               },
               {
                 key: "crew" as const,
-                label: "Crew",
-                placeholder: "Crew members",
+                label: "Crew Berth (s)",
+                placeholder: "Crew Berth (s)",
               },
             ].map((f) => (
               <div key={f.key}>
