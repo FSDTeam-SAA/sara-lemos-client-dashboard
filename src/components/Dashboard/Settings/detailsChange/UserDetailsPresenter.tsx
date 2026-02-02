@@ -245,7 +245,7 @@ const UserDetailsPresenter = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex justify-end gap-4 pt-6">
             <Button
               type="button"
               variant="outline"
