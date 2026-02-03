@@ -58,7 +58,7 @@ export default function UploadListing() {
 
             {/* Badges */}
             <div className="flex items-center gap-6">
-              <span className="text-sm font-medium text-[#65A30D]">
+              <span className="text-sm font-medium text-[#65A30D] mt-3">
                 Traditional methodd
               </span>
             </div>

@@ -123,10 +123,10 @@ export default function ContentGenerator() {
     "focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30";
 
   const onGenerate = async () => {
-    if (!promptText.trim()) {
-      toast.error("Please enter a prompt for generated content.");
-      return;
-    }
+    // if (!promptText.trim()) {
+    //   toast.error("Please enter a prompt for generated content.");
+    //   return;
+    // }
 
     if (platforms.length === 0) {
       toast.error("Please select at least one platform.");
