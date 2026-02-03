@@ -24,6 +24,7 @@ import {
   Sparkles,
   Zap,
   Download,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toPng } from "html-to-image";
@@ -411,8 +412,8 @@ export function ListingDetailModal({
                   </>
                 ) : (
                   <>
-                    <Download size={18} />
-                    Download as PDF
+                    <Mail size={18} />
+                    Send Email
                   </>
                 )}
               </Button>

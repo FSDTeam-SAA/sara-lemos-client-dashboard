@@ -5,6 +5,7 @@ export interface SubscriptionPlan {
   billingCycle: string;
   isActive: boolean;
   features: string[];
+  allowedListings?: number;
   createdAt: string;
   updatedAt: string;
 }

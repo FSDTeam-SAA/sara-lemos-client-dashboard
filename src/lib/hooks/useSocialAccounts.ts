@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   connectSocialAccounts,
+  getAllSubscriptionPlans,
   getUserIdByUserData,
 } from "../services/socialAccountsService";
 
@@ -24,6 +25,18 @@ export function useGetUserIdByUserData(userId: string) {
     queryKey: ["userId", userId],
     queryFn: async () => {
       return getUserIdByUserData(userId);
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+  });
+}
+
+// Get all subscription plans
+export function useGetAllSubscriptionPlans() {
+  return useQuery({
+    queryKey: ["subscription-plans"],
+    queryFn: async () => {
+      return getAllSubscriptionPlans();
     },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,

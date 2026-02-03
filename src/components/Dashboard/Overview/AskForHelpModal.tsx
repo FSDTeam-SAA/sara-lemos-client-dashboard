@@ -8,6 +8,10 @@ import { usePostAskForHelp } from "@/lib/hooks/useOverView";
 interface AskForHelpModalProps {
   isOpen: boolean;
   onClose: () => void;
+  title?: string;
+  subtitle?: string;
+  defaultIssue?: string;
+  hideIssueField?: boolean;
 }
 
 interface HelpFormData {
@@ -16,12 +20,29 @@ interface HelpFormData {
   email: string;
 }
 
-export function AskForHelpModal({ isOpen, onClose }: AskForHelpModalProps) {
+export function AskForHelpModal({
+  isOpen,
+  onClose,
+  title = "Ask For Help",
+  subtitle = "Our yacht marketing experts are here to assist you",
+  defaultIssue = "listing",
+  hideIssueField = false,
+}: AskForHelpModalProps) {
   const [formData, setFormData] = useState<HelpFormData>({
-    issue: "",
+    issue: defaultIssue,
     description: "",
     email: "",
   });
+
+  // Update form data when defaultIssue changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        issue: defaultIssue,
+      }));
+    }
+  }, [defaultIssue, isOpen]);
 
   const { mutateAsync: postAskForHelp } = usePostAskForHelp();
 
@@ -44,7 +65,7 @@ export function AskForHelpModal({ isOpen, onClose }: AskForHelpModalProps) {
 
     // Reset form and close modal
     setFormData({
-      issue: "",
+      issue: defaultIssue,
       description: "",
       email: "",
     });
@@ -61,10 +82,8 @@ export function AskForHelpModal({ isOpen, onClose }: AskForHelpModalProps) {
           <div className="bg-linear-to-r from-[#65A30D] to-[#4d7c0f] p-6 rounded-t-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-white">Ask For Help</h2>
-                <p className="text-white/80 text-sm mt-1">
-                  Our yacht marketing experts are here to assist you
-                </p>
+                <h2 className="text-2xl font-bold text-white">{title}</h2>
+                <p className="text-white/80 text-sm mt-1">{subtitle}</p>
               </div>
               <button
                 onClick={onClose}
@@ -78,25 +97,27 @@ export function AskForHelpModal({ isOpen, onClose }: AskForHelpModalProps) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Issue Field */}
-            <div>
-              <label
-                htmlFor="issue"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                Issue <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.issue}
-                onChange={(e) =>
-                  setFormData({ ...formData, issue: e.target.value })
-                }
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#65A30D]/20 outline-none transition-all"
-                required
-              >
-                <option value="listing">Listing</option>
-                <option value="marketing">Marketing</option>
-              </select>
-            </div>
+            {!hideIssueField && (
+              <div>
+                <label
+                  htmlFor="issue"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Issue <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.issue}
+                  onChange={(e) =>
+                    setFormData({ ...formData, issue: e.target.value })
+                  }
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#65A30D]/20 outline-none transition-all"
+                  required
+                >
+                  <option value="listing">Listing</option>
+                  <option value="marketing">Marketing</option>
+                </select>
+              </div>
+            )}
 
             {/* Description Field */}
             <div>
