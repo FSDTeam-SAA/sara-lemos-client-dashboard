@@ -28,7 +28,7 @@ type FormState = {
   price: string;
 
   guestCapacity: string;
-  bedrooms: string;
+  // bedrooms: string;
   bathrooms: string;
 
   cabins: string;
@@ -98,7 +98,7 @@ export default function UploadListingManual() {
     price: "",
 
     guestCapacity: "",
-    bedrooms: "",
+    // bedrooms: "",
     bathrooms: "",
 
     cabins: "",
@@ -313,7 +313,7 @@ export default function UploadListingManual() {
       { key: "draft", label: "Draft" },
       { key: "price", label: "Price" },
       { key: "guestCapacity", label: "Guest capacity" },
-      { key: "bedrooms", label: "Bedrooms" },
+      // { key: "bedrooms", label: "Bedrooms" },
       { key: "bathrooms", label: "Bathrooms" },
       { key: "cabins", label: "Cabins" },
       { key: "guests", label: "Guests" },
@@ -344,12 +344,13 @@ export default function UploadListingManual() {
     }
   };
 
-  const onSubmit = async (ev: React.FormEvent) => {
-    ev.preventDefault();
-
+  const handleSave = async () => {
     const e = validate();
     setErrors(e);
-    if (Object.values(e).some(Boolean)) return;
+    if (Object.values(e).some(Boolean)) {
+      toast.error("Please check all required fields");
+      return;
+    }
 
     const fd = new FormData();
     // Basic fields
@@ -361,7 +362,7 @@ export default function UploadListingManual() {
     fd.append("guestCapacity", String(Number(form.guestCapacity)));
     fd.append("Price", String(Number(form.price)));
     fd.append("bathRooms", String(Number(form.bathrooms)));
-    fd.append("bedRooms", String(Number(form.bedrooms)));
+    // fd.append("bedRooms", String(Number(form.bedrooms)));
     fd.append("cabins", String(Number(form.cabins)));
     fd.append("crew", String(Number(form.crew)));
     fd.append("guests", String(Number(form.guests)));
@@ -465,7 +466,7 @@ export default function UploadListingManual() {
       priceCurrency: "$",
       price: "",
       guestCapacity: "",
-      bedrooms: "",
+      // bedrooms: "",
       bathrooms: "",
       cabins: "",
       guests: "",
@@ -536,7 +537,7 @@ export default function UploadListingManual() {
       )}
 
       <form
-        onSubmit={onSubmit}
+        onSubmit={(e) => e.preventDefault()}
         className="mx-auto container rounded-lg border border-gray-200"
       >
         <div className="p-4 md:p-6">
@@ -762,18 +763,18 @@ export default function UploadListingManual() {
           </div>
 
           {/* ===== Guest Capacity / Bedrooms / Bathrooms ===== */}
-          {/* <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
                 key: "guestCapacity" as const,
                 label: "Guest Capacity",
                 placeholder: "e.g. 12 guests",
               },
-              {
-                key: "bedrooms" as const,
-                label: "Bedrooms",
-                placeholder: "Number of bedrooms",
-              },
+              // {
+              //   key: "bedrooms" as const,
+              //   label: "Bedrooms",
+              //   placeholder: "Number of bedrooms",
+              // },
               {
                 key: "bathrooms" as const,
                 label: "Bathrooms",
@@ -797,7 +798,7 @@ export default function UploadListingManual() {
                 )}
               </div>
             ))}
-          </div> */}
+          </div>
 
           {/* ===== Cabins / Guests / Crew ===== */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1125,7 +1126,8 @@ export default function UploadListingManual() {
             </button>
 
             <button
-              type="submit"
+              type="button"
+              onClick={handleSave}
               disabled={isSubmitting}
               className="h-10 min-w-[110px] rounded-md bg-[#65A30D] text-white text-sm font-semibold hover:bg-[#5a8f0c] transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
