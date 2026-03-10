@@ -44,7 +44,7 @@ export default function QuickActions() {
           </Link>
 
           {/* ✅ Card 2 */}
-          <Link href="/content-generator" className="block h-full">
+          {/* <Link href="/content-generator" className="block h-full">
             <div className={cardBase}>
               <div className="shrink-0 rounded-full bg-[#3B82F61A] p-3 transition-transform group-hover:scale-[1.03]">
                 <Zap className="text-[#3B82F6] size-5 sm:size-6" />
@@ -55,10 +55,10 @@ export default function QuickActions() {
                 <p className={desc}>Create AI-powered posts</p>
               </div>
             </div>
-          </Link>
+          </Link> */}
 
           {/* ✅ Card 3 */}
-          <Link href="/saved-drafts" className="block h-full">
+          {/* <Link href="/saved-drafts" className="block h-full">
             <div className={cardBase}>
               <div className="shrink-0 rounded-full bg-[#F59E0B1A] p-3 transition-transform group-hover:scale-[1.03]">
                 <Clock3 className="text-[#F59E0B] size-5 sm:size-6" />
@@ -69,7 +69,7 @@ export default function QuickActions() {
                 <p className={desc}>View your saved drafts</p>
               </div>
             </div>
-          </Link>
+          </Link> */}
 
           {/* ✅ Card 4 */}
           <button
