@@ -1,69 +1,97 @@
-# 🚀 Dashboard Template
+# 🛥️ Lime Pitch - Sara Lemos Client Dashboard
 
-A fully-featured **Next.js 16 dashboard template** with authentication, API integration, reusable components, Tailwind CSS, ShadCN UI, charts, and more. Ready to clone and use for your projects.
+A premium, fully-featured **Next.js 16** dashboard designed for specialized yacht listings management. This application provides a seamless experience for managing yacht data, subscription plans, and account preferences with a modern, responsive UI.
 
 ---
 
-## 🌐 Demo
+## ⚡ Key Features
 
-[Live Demo](https://dashboard-template-inky.vercel.app)
-
-## ⚡ Features
-
-- ✅ Authentication with **NextAuth.js**
-- ✅ Pre-built **dashboard pages** & **forms**
-- ✅ Reusable components with **ShadCN UI** & **Radix UI**
-- ✅ API integration ready using **Axios**
-- ✅ Tailwind CSS for responsive design
-- ✅ **React Hook Form** + **Zod** validation
-- ✅ Charts with **Recharts**
-- ✅ Real-time updates using **Socket.io client**
-- ✅ Toast notifications with **Sonner**
-- ✅ Middleware for route protection
+- **📊 Dashboard Overview:** Real-time summary of yacht listings and account activity.
+- **⚓ Listings Management:** Comprehensive interface to view, filter, and manage existing yacht listings.
+- **📤 Easy Uploads:** Streamlined process for creating new yacht listings with multi-step support.
+- **💳 Subscription Management:** Integrated billing and plan management for platform users.
+- **⚙️ Advanced Settings:** Granular control over account preferences and profile information.
+- **🔐 Secure Authentication:** Robust auth flow powered by **NextAuth.js**.
+- **📱 Responsive Design:** Fully optimized for desktop, tablet, and mobile devices using **Tailwind CSS 4**.
+- **🔔 Real-time Notifications:** Instant feedback and updates using **Sonner** and **Socket.io**.
+- **🧪 Modern Tooling:** Built with **React 19**, **TanStack Query**, and **ShadCN UI**.
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Frontend:** Next.js 16, React 19
-- **UI/Components:** ShadCN UI, Radix UI, Lucide React icons
-- **State Management:** React Query
-- **Forms & Validation:** React Hook Form, Zod
-- **Charts:** Recharts
-- **HTTP Client:** Axios
-- **Notifications:** Sonner
-- **Real-time:** Socket.io client
-- **Linting & Formatting:** ESLint, Prettier
-- **Git Hooks:** Husky, lint-staged
+- **Framework:** [Next.js 15.1.4](https://nextjs.org/) (App Router)
+- **Library:** [React 19](https://react.dev/)
+- **UI/Components:** [ShadCN UI](https://ui.shadcn.com/), [Radix UI](https://www.radix-ui.com/), [Lucide React](https://lucide.dev/)
+- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
+- **State Management:** [TanStack Query v5](https://tanstack.com/query/latest)
+- **Forms & Validation:** [React Hook Form](https://react-hook-form.com/), [Zod](https://zod.dev/)
+- **Authentication:** [NextAuth.js v4](https://next-auth.js.org/)
+- **Charts:** [Recharts](https://recharts.org/)
+- **API Client:** [Axios](https://axios-http.com/)
+- **Development Tools:** ESLint, Prettier, Husky, lint-staged
 
 ---
 
-## ⚙️ Installation
+## 📁 Project Structure
 
-# Clone repository
+```text
+src/
+├── app/            # Next.js App Router (pages and layouts)
+├── components/     # Reusable UI components (Dashboard, Auth, shared units)
+├── contexts/       # React Context providers (Sidebar, Theme, etc.)
+├── hooks/          # Custom React hooks for API and logic
+├── lib/            # Utility functions and shared library configurations
+├── services/       # API service layers
+├── types/          # TypeScript definitions and interfaces
+└── config/         # Application-wide configuration and routing
+```
 
-git clone [https://github.com/RashedulHaqueRasel1/dashboard-template](https://github.com/RashedulHaqueRasel1/dashboard-template)
-cd dashboard-template
+---
 
-# Install dependencies
+## ⚙️ Getting Started
 
-npm install
+### Prerequisites
 
-# Add environment variables
+- Node.js (Latest LTS recommended)
+- npm or yarn
 
-cp .env.example .env
+### Installation
 
-# Then edit .env file with your API URL and secrets
+1. **Clone the repository:**
 
-# Run development server
+   ```bash
+   git clone https://github.com/RashedulHaqueRasel1/sara-lemos-client-dashboard.git
+   cd sara-lemos-client-dashboard
+   ```
 
-npm run dev
+2. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   _Edit `.env.local` with your database URL, auth secrets, and API keys._
+
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+---
 
 ## 🧑‍💻 Author
 
 **Rashedul Haque Rasel**
 
-Built with ❤️ using **Next.js**, **TypeScript**, and **Tailwind CSS**.
+Built with ❤️ for excellence in yacht management interfaces.
 
 📧 Email: [rashedulhaquerasel1@gmail.com](mailto:rashedulhaquerasel1@gmail.com)
 🌐 Portfolio: [Link](https://rashedul-haque-rasel.vercel.app)
