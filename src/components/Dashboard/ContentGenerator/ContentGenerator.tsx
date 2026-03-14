@@ -8,14 +8,29 @@ import {
   Instagram,
   Sparkles,
   RefreshCw,
-  Plus,
+  X,
+  Calendar,
+  Clock,
 } from "lucide-react";
-import { useGenerateContent } from "@/lib/hooks/useContentGenerator";
-import { GenerateContentPayload } from "@/lib/services/contentGeneratorService";
+import {
+  useGenerateContent,
+  useFinalizeFacebookPost,
+} from "@/lib/hooks/useContentGenerator";
+import {
+  GenerateContentPayload,
+  FacebookContent,
+} from "@/lib/services/contentGeneratorService";
 import { Campaign } from "@/lib/services/campaignService";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { useGetUserIdByUserData } from "@/lib/hooks/useSocialAccounts";
+import { getUserIdByUserData } from "@/lib/services/socialAccountsService";
+
+interface FacebookPage {
+  pageId: string;
+  pageName: string;
+  pageAccessToken: string;
+}
 
 type Platform = "facebook" | "instagram";
 
@@ -50,27 +65,52 @@ export default function ContentGenerator() {
   const [tone, setTone] = useState<(typeof tones)[number]>("Professional");
   const [postType, setPostType] =
     useState<(typeof postTypes)[number]>("Teaser");
-  const [promptText, setPromptText] = useState("");
+  // const [promptText, setPromptText] = useState("");
   const [content, setContent] = useState("");
-  const [selectedCampaignId, setSelectedCampaignId] = useState("");
+  // const [selectedCampaignId, setSelectedCampaignId] = useState("");
+  const [facebookContent, setFacebookContent] =
+    useState<FacebookContent | null>(null);
 
   const { mutateAsync: handleGenerateContent, isPending } =
     useGenerateContent();
+  const { mutateAsync: handleFinalizePost, isPending: isScheduling } =
+    useFinalizeFacebookPost();
 
   const { data: session } = useSession();
   const userId = session?.user?.id;
+
+  const sessionUser = session?.user as
+    | {
+        firstName?: string;
+        lastName?: string;
+        image?: string;
+      }
+    | undefined;
+
+  const userFirstName = sessionUser?.firstName;
+  const userLastName = sessionUser?.lastName;
+  const userName =
+    userFirstName && userLastName
+      ? `${userFirstName} ${userLastName}`
+      : "User Marketing";
+
+  const userImage =
+    sessionUser?.image ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=1b2631&color=fff`;
 
   const { data: userData, isLoading } = useGetUserIdByUserData(
     userId as string,
   );
 
   // Extract campaigns from userData
+  /*
   const campaigns = useMemo(() => {
     if (!userData?.data || !Array.isArray(userData.data)) return [];
-    return userData.data.flatMap(
+    return userData?.data?.flatMap(
       (item: { campaigns?: Campaign[] }) => item.campaigns || [],
     );
   }, [userData]);
+  */
 
   // ✅ Contact states
   const [includeContact, setIncludeContact] = useState(true);
@@ -79,6 +119,93 @@ export default function ContentGenerator() {
   const [contactEmail, setContactEmail] = useState("");
 
   const charCount = useMemo(() => content.length, [content]);
+
+  // ✅ Schedule Modal states
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isFetchingPages, setIsFetchingPages] = useState(false);
+  const [facebookPages, setFacebookPages] = useState<FacebookPage[]>([]);
+  const [selectedPageId, setSelectedPageId] = useState("");
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
+
+  const onOpenScheduleModal = async () => {
+    setIsScheduleModalOpen(true);
+    setIsFetchingPages(true);
+    setFacebookPages([]);
+    setSelectedPageId("");
+
+    try {
+      if (userId) {
+        const responseData = await getUserIdByUserData(userId);
+        // The service returns the response directly, so we check responseData.data or responseData depending on API format.
+        // Usually, getUserIdByUserData returns response.data
+        const businesses =
+          responseData?.data?.facebookBusinesses ||
+          responseData?.facebookBusinesses ||
+          [];
+        const pages =
+          businesses.flatMap(
+            (b: { pages?: FacebookPage[] }) => b.pages || [],
+          ) || [];
+        setFacebookPages(pages);
+      }
+    } catch (error) {
+      console.error("Failed to fetch FB pages", error);
+      toast.error("Failed to fetch Facebook pages");
+    } finally {
+      setIsFetchingPages(false);
+    }
+  };
+
+  const onSchedulePost = async () => {
+    if (!selectedPageId) {
+      toast.error("Please select a Facebook page.");
+      return;
+    }
+    if (!scheduleDate || !scheduleTime) {
+      toast.error("Please select both date and time.");
+      return;
+    }
+
+    if (!facebookContent?.message) {
+      toast.error("Missing AI generated content.");
+      return;
+    }
+
+    if (!facebookContent?.imageUrl) {
+      toast.error("Missing AI generated image.");
+      return;
+    }
+
+    // Combine date and time to ISO format
+    try {
+      const dateTimeString = `${scheduleDate}T${scheduleTime}:00`;
+      const scheduledTimeIso = new Date(dateTimeString).toISOString();
+
+      const hashtags = facebookContent.message.match(/#[\w-]+/g) || [];
+
+      const payload = {
+        status: "SCHEDULED",
+        pageId: selectedPageId,
+        postType: "SINGLE_IMAGE",
+        content: {
+          message: facebookContent.message,
+          hashtags: hashtags,
+        },
+        platforms: ["facebook"],
+        mediaUrls: [facebookContent.imageUrl],
+        scheduledTime: scheduledTimeIso,
+      };
+
+      await handleFinalizePost(payload);
+
+      toast.success("Post successfully scheduled.");
+      setIsScheduleModalOpen(false);
+    } catch (error) {
+      console.error("Scheduling failed:", error);
+      toast.error("Failed to schedule post. Please try again.");
+    }
+  };
 
   // ✅ Platform toggle logic (same as your earlier logic, multi-select)
   const togglePlatform = (name: Platform) => {
@@ -135,7 +262,7 @@ export default function ContentGenerator() {
 
     const payload: GenerateContentPayload = {
       tone,
-      postType: `${postType}: ${promptText}`,
+      postType: `${postType}`, // Removed promptText reference since textarea is commented out
       platforms,
     };
 
@@ -148,9 +275,10 @@ export default function ContentGenerator() {
     try {
       const response = await handleGenerateContent(payload);
 
-      // NOTE: If your API returns string, keep this
+      // NOTE: Update for new object response
       if (response.success && response.data) {
-        setContent(response.data);
+        setContent(response.data.facebook?.message || "");
+        setFacebookContent(response.data.facebook || null);
         toast.success(response.message || "Content generated successfully!");
       } else {
         toast.error(response.message || "Failed to generate content.");
@@ -401,84 +529,312 @@ export default function ContentGenerator() {
           </div>
         </div>
 
-        {/* Right: Generated Content */}
-        <div className={`lg:col-span-8 ${baseCard} p-6`}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-[#65A30D]" />
-              <h2 className="text-xl font-extrabold text-[#65A30D]">
-                Generated Content
-              </h2>
-            </div>
-
-            <div className="flex items-center gap-2 justify-end">
-              <div className="relative">
-                <select
-                  value={postType}
-                  onChange={(e) =>
-                    setPostType(e.target.value as (typeof postTypes)[number])
-                  }
-                  className="appearance-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 pr-10 text-sm text-gray-700
-                             focus:outline-none focus:ring-2 focus:ring-[#7AAE2A]/25"
-                >
-                  {postTypes.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+        {/* Right: Generated Content & Preview */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className={`${baseCard} p-6`}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-[#65A30D]" />
+                <h2 className="text-xl font-extrabold text-[#65A30D]">
+                  Generated Content
+                </h2>
               </div>
 
-              <button
-                type="button"
-                onClick={onCopy}
-                className={`${ghostIconBtn} cursor-pointer`}
-                title="Copy"
-              >
-                <Copy className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2 justify-end">
+                <div className="relative">
+                  <select
+                    value={postType}
+                    onChange={(e) =>
+                      setPostType(e.target.value as (typeof postTypes)[number])
+                    }
+                    className="appearance-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 pr-10 text-sm text-gray-700
+                             focus:outline-none focus:ring-2 focus:ring-[#7AAE2A]/25"
+                  >
+                    {postTypes.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                </div>
 
-              <button
-                type="button"
-                onClick={onGenerate}
-                className={regenerateBtn}
-                disabled={isPending}
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`}
-                />
-                {isPending ? "Generating..." : "Regenerate"}
-              </button>
+                <button
+                  type="button"
+                  onClick={onCopy}
+                  className={`${ghostIconBtn} cursor-pointer`}
+                  title="Copy"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onGenerate}
+                  className={regenerateBtn}
+                  disabled={isPending}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`}
+                  />
+                  {isPending ? "Generating..." : "Regenerate"}
+                </button>
+              </div>
+            </div>
+
+            <div
+              className={`${subtleBg} rounded-2xl border border-[#DCE9C7] p-4`}
+            >
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Write here..."
+                className="min-h-[260px] w-full resize-none bg-transparent text-sm leading-6 text-gray-700 outline-none"
+              />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-xs text-gray-500">
+                {charCount} characters
+              </span>
+              <span className="text-xs text-gray-400">
+                Optimized for {platforms.join(", ") || "No platform selected"}
+              </span>
+            </div>
+
+            <div className="mt-3 text-[11px] text-gray-500">
+              <span className="font-semibold text-[#2E5A2E]">Selected:</span>{" "}
+              {listing} • {tone} • {postType}
             </div>
           </div>
 
-          <div
-            className={`${subtleBg} rounded-2xl border border-[#DCE9C7] p-4`}
-          >
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write here..."
-              className="min-h-[260px] w-full resize-none bg-transparent text-sm leading-6 text-gray-700 outline-none"
-            />
-          </div>
+          {/* Post Preview Section */}
+          {(isPending || facebookContent) && (
+            <div className={`${baseCard} p-6`}>
+              <h2 className="text-xl font-bold text-[#65A30D] mb-5">
+                Post Preview
+              </h2>
+              {isPending && (
+                <div className="animate-pulse flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
+                    <div>
+                      <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-16"></div>
+                    </div>
+                  </div>
+                  <div className="h-64 bg-gray-200 rounded-xl w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              )}
 
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-xs text-gray-500">
-              {charCount} characters
-            </span>
-            <span className="text-xs text-gray-400">
-              Optimized for {platforms.join(", ") || "No platform selected"}
-            </span>
-          </div>
+              {!isPending && facebookContent && (
+                <div className="flex flex-col gap-4 bg-[#F9FAFB] border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  {/* Account Info */}
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-[#1b2631] flex items-center justify-center overflow-hidden">
+                      <img
+                        src={userImage}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-[#65A30D]">
+                        {userName}
+                      </div>
+                      <div className="text-xs text-gray-500">Just now</div>
+                    </div>
+                  </div>
 
-          <div className="mt-3 text-[11px] text-gray-500">
-            <span className="font-semibold text-[#2E5A2E]">Selected:</span>{" "}
-            {listing} • {tone} • {postType}
-          </div>
+                  {/* Image */}
+                  {facebookContent.imageUrl && (
+                    <div className="w-full overflow-hidden rounded-xl border border-gray-100">
+                      <img
+                        src={facebookContent.imageUrl}
+                        alt="Generated Post Content"
+                        className="w-full h-auto object-cover max-h-[500px]"
+                      />
+                    </div>
+                  )}
+
+                  {/* Message */}
+                  <div className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed mt-1">
+                    {content || facebookContent.message}
+                  </div>
+
+                  {/* Prompt */}
+                  {facebookContent.imagePrompt && (
+                    <div className="text-[11px] text-gray-400 italic mt-2 border-t border-gray-100 pt-3 flex flex-col gap-1">
+                      <span className="font-semibold text-gray-500">
+                        Image Description Generator Prompt:
+                      </span>
+                      {facebookContent.imagePrompt}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          {facebookContent && (
+            <div className="mt-6 flex flex-col sm:flex-row gap-4">
+              <button
+                type="button"
+                className="flex-1 rounded-xl bg-[#76A91F] py-3.5 text-white font-bold shadow-[0_12px_22px_rgba(118,169,31,0.25)] hover:bg-[#6A9A1B] active:scale-[0.99] transition focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30"
+                onClick={onOpenScheduleModal}
+              >
+                Schedule the day and time
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-xl border border-[#76A91F] bg-[#F6FAF1] py-3.5 text-[#5A7E1F] font-bold hover:bg-[#EDF6E1] active:scale-[0.99] transition focus:outline-none focus:ring-2 focus:ring-[#7AAE2A]/25"
+                onClick={() => console.log("click Save as Draft")}
+              >
+                Save as Draft
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Schedule Modal */}
+      {isScheduleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-lg overflow-hidden bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-[#F9FAFB]">
+              <h3 className="text-xl font-bold text-[#65A30D]">
+                Schedule Post
+              </h3>
+              <button
+                onClick={() => setIsScheduleModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-full p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="mb-6">
+                <label className="text-sm font-semibold text-[#2E5A2E] mb-3 block">
+                  Select Facebook Page
+                </label>
+
+                {isFetchingPages ? (
+                  <div className="flex justify-center items-center py-8">
+                    <RefreshCw className="w-6 h-6 text-[#65A30D] animate-spin" />
+                  </div>
+                ) : facebookPages.length > 0 ? (
+                  <div className="space-y-3">
+                    {facebookPages.map((page) => (
+                      <label
+                        key={page.pageId}
+                        className={`
+                          flex items-center p-4 border rounded-xl cursor-pointer transition-all
+                          ${
+                            selectedPageId === page.pageId
+                              ? "border-[#65A30D] bg-[#F0F6E7] ring-1 ring-[#65A30D]"
+                              : "border-gray-200 hover:border-gray-300 bg-white"
+                          }
+                        `}
+                      >
+                        <input
+                          type="radio"
+                          name="fbPage"
+                          value={page.pageId}
+                          checked={selectedPageId === page.pageId}
+                          onChange={(e) => setSelectedPageId(e.target.value)}
+                          className="w-4 h-4 text-[#65A30D] border-gray-300 focus:ring-[#65A30D]"
+                        />
+                        <div className="ml-3 flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                            <Facebook className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900">
+                              {page.pageName}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              ID: {page.pageId}
+                            </div>
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 bg-gray-50 rounded-xl border border-gray-100">
+                    <p className="text-gray-500 text-sm">
+                      No Facebook pages connected to this account.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-gray-100 pt-6">
+                <label className="text-sm font-semibold text-[#2E5A2E] mb-3 block">
+                  Schedule Time
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-gray-500 font-medium mb-1 block">
+                      Date
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={scheduleDate}
+                        onChange={(e) => setScheduleDate(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
+                      />
+                      <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 font-medium mb-1 block">
+                      Time
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(e) => setScheduleTime(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
+                      />
+                      <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+              <button
+                onClick={() => setIsScheduleModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onSchedulePost}
+                disabled={
+                  !selectedPageId ||
+                  !scheduleDate ||
+                  !scheduleTime ||
+                  isScheduling
+                }
+                className="px-5 py-2.5 rounded-xl font-bold text-white bg-[#76A91F] hover:bg-[#6A9A1B] shadow-[0_4px_10px_rgba(118,169,31,0.2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30 flex items-center gap-2"
+              >
+                {isScheduling && <RefreshCw className="w-4 h-4 animate-spin" />}
+                {isScheduling ? "Scheduling..." : "Schedule Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

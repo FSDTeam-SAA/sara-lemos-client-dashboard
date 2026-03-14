@@ -12,9 +12,31 @@ export interface GenerateContentPayload {
   };
 }
 
+export interface FacebookContent {
+  message: string;
+  imagePrompt: string;
+  imageUrl: string | null;
+}
+
+export interface InstagramContent {
+  message: string;
+  imagePrompt: string;
+  imageUrl: string | null;
+}
+
+export interface MetaContent {
+  tone: string;
+  postType: string;
+  cta: string;
+}
+
 export interface GenerateContentResponse {
   success: boolean;
-  data: string;
+  data: {
+    facebook: FacebookContent;
+    instagram: InstagramContent;
+    meta: MetaContent;
+  };
   message?: string;
 }
 
@@ -26,5 +48,25 @@ export const generateContent = async (
     "/ai/generate-ad",
     data,
   );
+  return response.data;
+};
+
+export interface FinalizeFacebookPostPayload {
+  status: string;
+  pageId: string;
+  postType: string;
+  content: {
+    message: string;
+    hashtags: string[];
+  };
+  platforms: string[];
+  mediaUrls: string[];
+  scheduledTime?: string;
+}
+
+export const finalizeFacebookPost = async (
+  data: FinalizeFacebookPostPayload,
+) => {
+  const response = await axiosInstance.post("/facebookPost/finalize", data);
   return response.data;
 };
