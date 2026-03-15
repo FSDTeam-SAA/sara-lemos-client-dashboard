@@ -4,9 +4,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useState } from "react";
+import { useFinalizeFacebookPost } from "@/lib/hooks/useContentGenerator";
+import { FinalizeFacebookPostPayload } from "@/lib/services/contentGeneratorService";
+import { toast } from "sonner";
 import { FacebookPost } from "@/types/facebook";
-import { Facebook, Instagram, FileText } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  FileText,
+  Calendar,
+  Clock,
+  RefreshCw,
+} from "lucide-react";
 import Image from "next/image";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ViewDraftModalProps {
   post: FacebookPost | null;
@@ -15,12 +27,111 @@ interface ViewDraftModalProps {
 }
 
 export function ViewDraftModal({ post, isOpen, onClose }: ViewDraftModalProps) {
+  const [actionMode, setActionMode] = useState<"view" | "schedule" | "publish">(
+    "view",
+  );
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: handleFinalizePost, isPending } =
+    useFinalizeFacebookPost();
+
   if (!post) return null;
 
   const imageUrl = post.media && post.media.length > 0 ? post.media[0].url : "";
 
+  const handleActionClick = async (mode: "schedule" | "publish") => {
+    if (mode === "publish") {
+      await executeAction("publish");
+    } else {
+      setActionMode(mode);
+    }
+  };
+
+  const executeAction = async (actionFinalMode: "schedule" | "publish") => {
+    // Shared validations
+    if (!post?.pageId) {
+      toast.error("Missing Page ID for this post.");
+      return;
+    }
+    if (!post?.content?.message) {
+      toast.error("Missing caption for this post.");
+      return;
+    }
+    if (!imageUrl) {
+      toast.error("Missing image for this post.");
+      return;
+    }
+
+    // Schedule-specific validation
+    if (actionFinalMode === "schedule") {
+      if (!scheduleDate || !scheduleTime) {
+        toast.error("Please select both date and time.");
+        return;
+      }
+    }
+
+    try {
+      const payload: FinalizeFacebookPostPayload = {
+        status: actionFinalMode === "schedule" ? "SCHEDULED" : "PUBLISHED",
+        pageId: post.pageId,
+        postType: post.postType || "SINGLE_IMAGE",
+        content: {
+          message: post.content.message,
+          hashtags: post.content.hashtags || [],
+        },
+        platforms: post.platforms || ["facebook"],
+        mediaUrls: [imageUrl],
+      };
+
+      if (actionFinalMode === "schedule") {
+        const selectedDateTime = new Date(`${scheduleDate}T${scheduleTime}:00`);
+        // Fix timezone difference (+6 hours)
+        selectedDateTime.setHours(selectedDateTime.getHours() + 6);
+        const scheduledTimeIso = selectedDateTime
+          .toISOString()
+          .replace(".000", "");
+        payload.scheduledTime = scheduledTimeIso;
+      }
+
+      await handleFinalizePost(payload);
+
+      toast.success(
+        actionFinalMode === "schedule"
+          ? "Post scheduled successfully."
+          : "Post published successfully.",
+      );
+
+      // Reset state and close
+      setActionMode("view");
+      setScheduleDate("");
+      setScheduleTime("");
+      onClose();
+
+      // Refresh content list
+      queryClient.invalidateQueries({ queryKey: ["savedDrafts"] });
+    } catch (error) {
+      console.error("Action failed:", error);
+      toast.error(`Failed to ${actionFinalMode} post. Please try again.`);
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    if (actionMode === "schedule" || actionMode === "publish") {
+      await executeAction(actionMode);
+    }
+  };
+
+  const handleModalClose = () => {
+    setActionMode("view");
+    setScheduleDate("");
+    setScheduleTime("");
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleModalClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
         <div className="relative">
           {/* Header Image */}
@@ -133,6 +244,92 @@ export function ViewDraftModal({ post, isOpen, onClose }: ViewDraftModalProps) {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Action Area */}
+          <div className="mt-8 border-t border-gray-100 pt-6">
+            {actionMode === "view" ? (
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={handleModalClose}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleActionClick("schedule")}
+                  className="px-5 py-2.5 rounded-xl font-bold text-[#76A91F] bg-[#F6FAF1] border border-[#76A91F] hover:bg-[#EDF6E1] transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#7AAE2A]/25"
+                >
+                  Schedule
+                </button>
+                <button
+                  onClick={() => handleActionClick("publish")}
+                  className="px-5 py-2.5 rounded-xl font-bold text-white bg-[#76A91F] hover:bg-[#6A9A1B] shadow-[0_4px_10px_rgba(118,169,31,0.2)] transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30"
+                >
+                  Publish
+                </button>
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                <h4 className="text-sm font-bold text-[#0B3B36] mb-4">
+                  Set Date and Time to{" "}
+                  {actionMode === "schedule" ? "Schedule" : "Publish"}
+                </h4>
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="text-xs text-gray-500 font-medium mb-1 block">
+                      Date
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={scheduleDate}
+                        onChange={(e) => setScheduleDate(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
+                        disabled={isPending}
+                      />
+                      <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 font-medium mb-1 block">
+                      Time
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(e) => setScheduleTime(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
+                        disabled={isPending}
+                      />
+                      <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setActionMode("view")}
+                    className="px-5 py-2.5 rounded-xl font-semibold text-gray-600 hover:bg-gray-200 bg-gray-100 border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    disabled={isPending}
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleConfirmAction}
+                    disabled={!scheduleDate || !scheduleTime || isPending}
+                    className="px-5 py-2.5 rounded-xl font-bold text-white bg-[#76A91F] hover:bg-[#6A9A1B] shadow-[0_4px_10px_rgba(118,169,31,0.2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30 flex items-center gap-2"
+                  >
+                    {isPending && (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    )}
+                    {isPending ? "Processing..." : "Confirm Schedule"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

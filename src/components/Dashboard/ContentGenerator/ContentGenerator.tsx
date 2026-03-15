@@ -19,6 +19,7 @@ import {
 import {
   GenerateContentPayload,
   FacebookContent,
+  FinalizeFacebookPostPayload,
 } from "@/lib/services/contentGeneratorService";
 import { Campaign } from "@/lib/services/campaignService";
 import { toast } from "sonner";
@@ -120,15 +121,19 @@ export default function ContentGenerator() {
 
   const charCount = useMemo(() => content.length, [content]);
 
-  // ✅ Schedule Modal states
+  // ✅ Schedule & Draft Modal states
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"schedule" | "draft">("schedule");
   const [isFetchingPages, setIsFetchingPages] = useState(false);
   const [facebookPages, setFacebookPages] = useState<FacebookPage[]>([]);
   const [selectedPageId, setSelectedPageId] = useState("");
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
 
-  const onOpenScheduleModal = async () => {
+  const onOpenScheduleModal = async (
+    mode: "schedule" | "draft" = "schedule",
+  ) => {
+    setModalMode(mode);
     setIsScheduleModalOpen(true);
     setIsFetchingPages(true);
     setFacebookPages([]);
@@ -162,7 +167,7 @@ export default function ContentGenerator() {
       toast.error("Please select a Facebook page.");
       return;
     }
-    if (!scheduleDate || !scheduleTime) {
+    if (modalMode === "schedule" && (!scheduleDate || !scheduleTime)) {
       toast.error("Please select both date and time.");
       return;
     }
@@ -179,13 +184,10 @@ export default function ContentGenerator() {
 
     // Combine date and time to ISO format
     try {
-      const dateTimeString = `${scheduleDate}T${scheduleTime}:00`;
-      const scheduledTimeIso = new Date(dateTimeString).toISOString();
-
       const hashtags = facebookContent.message.match(/#[\w-]+/g) || [];
 
-      const payload = {
-        status: "SCHEDULED",
+      const payload: FinalizeFacebookPostPayload = {
+        status: modalMode === "schedule" ? "SCHEDULED" : "DRAFT",
         pageId: selectedPageId,
         postType: "SINGLE_IMAGE",
         content: {
@@ -194,12 +196,25 @@ export default function ContentGenerator() {
         },
         platforms: ["facebook"],
         mediaUrls: [facebookContent.imageUrl],
-        scheduledTime: scheduledTimeIso,
       };
+
+      if (modalMode === "schedule") {
+        const selectedDateTime = new Date(`${scheduleDate}T${scheduleTime}:00`);
+        // Fix timezone difference (+6 hours)
+        selectedDateTime.setHours(selectedDateTime.getHours() + 6);
+        const scheduledTimeIso = selectedDateTime
+          .toISOString()
+          .replace(".000", "");
+        payload.scheduledTime = scheduledTimeIso;
+      }
 
       await handleFinalizePost(payload);
 
-      toast.success("Post successfully scheduled.");
+      toast.success(
+        modalMode === "schedule"
+          ? "Post successfully scheduled."
+          : "Post saved as Draft successfully.",
+      );
       setIsScheduleModalOpen(false);
     } catch (error) {
       console.error("Scheduling failed:", error);
@@ -685,14 +700,14 @@ export default function ContentGenerator() {
               <button
                 type="button"
                 className="flex-1 rounded-xl bg-[#76A91F] py-3.5 text-white font-bold shadow-[0_12px_22px_rgba(118,169,31,0.25)] hover:bg-[#6A9A1B] active:scale-[0.99] transition focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30"
-                onClick={onOpenScheduleModal}
+                onClick={() => onOpenScheduleModal("schedule")}
               >
                 Schedule the day and time
               </button>
               <button
                 type="button"
                 className="flex-1 rounded-xl border border-[#76A91F] bg-[#F6FAF1] py-3.5 text-[#5A7E1F] font-bold hover:bg-[#EDF6E1] active:scale-[0.99] transition focus:outline-none focus:ring-2 focus:ring-[#7AAE2A]/25"
-                onClick={() => console.log("click Save as Draft")}
+                onClick={() => onOpenScheduleModal("draft")}
               >
                 Save as Draft
               </button>
@@ -707,7 +722,7 @@ export default function ContentGenerator() {
           <div className="w-full max-w-lg overflow-hidden bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-[#F9FAFB]">
               <h3 className="text-xl font-bold text-[#65A30D]">
-                Schedule Post
+                {modalMode === "schedule" ? "Schedule Post" : "Save Draft"}
               </h3>
               <button
                 onClick={() => setIsScheduleModalOpen(false)}
@@ -774,41 +789,43 @@ export default function ContentGenerator() {
                 )}
               </div>
 
-              <div className="border-t border-gray-100 pt-6">
-                <label className="text-sm font-semibold text-[#2E5A2E] mb-3 block">
-                  Schedule Time
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-gray-500 font-medium mb-1 block">
-                      Date
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={scheduleDate}
-                        onChange={(e) => setScheduleDate(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
-                      />
-                      <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              {modalMode === "schedule" && (
+                <div className="border-t border-gray-100 pt-6">
+                  <label className="text-sm font-semibold text-[#2E5A2E] mb-3 block">
+                    Schedule Time
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 font-medium mb-1 block">
+                        Date
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={scheduleDate}
+                          onChange={(e) => setScheduleDate(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
+                        />
+                        <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 font-medium mb-1 block">
-                      Time
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="time"
-                        value={scheduleTime}
-                        onChange={(e) => setScheduleTime(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
-                      />
-                      <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <div>
+                      <label className="text-xs text-gray-500 font-medium mb-1 block">
+                        Time
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="time"
+                          value={scheduleTime}
+                          onChange={(e) => setScheduleTime(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#65A30D] focus:ring-2 focus:ring-[#7AAE2A]/20 outline-none text-sm bg-white"
+                        />
+                        <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
@@ -822,14 +839,18 @@ export default function ContentGenerator() {
                 onClick={onSchedulePost}
                 disabled={
                   !selectedPageId ||
-                  !scheduleDate ||
-                  !scheduleTime ||
+                  (modalMode === "schedule" &&
+                    (!scheduleDate || !scheduleTime)) ||
                   isScheduling
                 }
                 className="px-5 py-2.5 rounded-xl font-bold text-white bg-[#76A91F] hover:bg-[#6A9A1B] shadow-[0_4px_10px_rgba(118,169,31,0.2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#76A91F]/30 flex items-center gap-2"
               >
                 {isScheduling && <RefreshCw className="w-4 h-4 animate-spin" />}
-                {isScheduling ? "Scheduling..." : "Schedule Post"}
+                {isScheduling
+                  ? "Saving..."
+                  : modalMode === "schedule"
+                    ? "Schedule Post"
+                    : "Save Draft"}
               </button>
             </div>
           </div>
