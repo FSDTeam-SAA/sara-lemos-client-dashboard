@@ -1,14 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import {
-  ShieldCheck,
-  Facebook,
-  Instagram,
-  CheckCircle2,
-  Link2,
-} from "lucide-react";
+import { ShieldCheck, Facebook, CheckCircle2, Link2 } from "lucide-react";
 import { toast } from "sonner";
-import { connectSocialAccounts } from "@/lib/services/socialAccountsService";
+import {
+  connectSocialAccounts,
+  getUserIdByUserData,
+} from "@/lib/services/socialAccountsService";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 interface SocialData {
   pageName?: string;
@@ -24,6 +23,20 @@ interface SocialStatus {
   data: SocialData | null;
 }
 
+export interface FacebookPage {
+  id: string;
+  name: string;
+  picture?: {
+    data?: {
+      url?: string;
+    };
+  };
+}
+
+export interface FacebookBusiness {
+  pages?: FacebookPage[];
+}
+
 export default function SocialAccounts() {
   const [facebookStatus, setFacebookStatus] = useState<SocialStatus>({
     isConnected: false,
@@ -36,6 +49,39 @@ export default function SocialAccounts() {
     isLoading: false,
     data: null,
   });
+
+  const { data: session } = useSession();
+  const [facebookPages, setFacebookPages] = useState<FacebookPage[]>([]);
+  const [isFetchingData, setIsFetchingData] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userId = session?.user?.id;
+      if (!userId) {
+        setIsFetchingData(false);
+        return;
+      }
+
+      try {
+        const userData = await getUserIdByUserData(userId);
+        const fbBusinesses = userData?.data?.facebookBusinesses || [];
+        const allPages = fbBusinesses.flatMap(
+          (biz: FacebookBusiness) => biz.pages || [],
+        );
+        setFacebookPages(allPages);
+      } catch (error) {
+        console.error("Failed to fetch user social data", error);
+      } finally {
+        setIsFetchingData(false);
+      }
+    };
+
+    if (session?.user) {
+      fetchUserData();
+    } else {
+      setIsFetchingData(false);
+    }
+  }, [session]);
 
   const handleConnectFacebook = async () => {
     const newWindow = window.open("", "_blank");
@@ -119,6 +165,133 @@ export default function SocialAccounts() {
     setInstagramStatus({ isConnected: false, isLoading: false, data: null });
   };
 
+  const renderFacebookContent = () => {
+    if (isFetchingData) {
+      return (
+        <div className="py-2 text-sm text-gray-500">
+          Checking connection status...
+        </div>
+      );
+    }
+
+    if (facebookPages.length > 0) {
+      return (
+        <div className="flex flex-col gap-3 pt-2">
+          <h3 className="font-semibold text-gray-700 mb-1">
+            Facebook Accounts
+          </h3>
+          {facebookPages.map((page: FacebookPage, idx: number) => (
+            <div
+              key={idx}
+              className="rounded-xl border border-[#65A30D]/30 bg-[#FAFDF2] p-4 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                {page.picture?.data?.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={page.picture.data.url}
+                    alt={page.name}
+                    className="w-10 h-10 rounded-full border border-gray-200"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200">
+                    <Facebook className="text-blue-500 w-5 h-5" />
+                  </div>
+                )}
+                <div>
+                  <h4 className="font-medium text-gray-800">{page.name}</h4>
+                  <p className="text-xs text-gray-500 mt-0.5 shadow-sm inline-block bg-white px-2 py-[2px] rounded-md border border-gray-100">
+                    Page ID: {page.id}
+                  </p>
+                </div>
+              </div>
+              <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
+                <CheckCircle2 size={14} />
+                Connected
+              </span>
+            </div>
+          ))}
+
+          <div className="mt-2 text-right">
+            <button
+              onClick={handleConnectFacebook}
+              disabled={facebookStatus.isLoading}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            >
+              {facebookStatus.isLoading
+                ? "Connecting..."
+                : "+ Connect Another Page"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (!facebookStatus.isConnected) {
+      return (
+        <div className="pt-2">
+          <button
+            onClick={handleConnectFacebook}
+            disabled={facebookStatus.isLoading}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#1877F2] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
+          >
+            <Link2 size={16} />
+            {facebookStatus.isLoading ? "Connecting..." : "Connect Facebook"}
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="rounded-xl border border-[#65A30D]/30 bg-[#FAFDF2] p-4 animate-in fade-in zoom-in duration-300">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="font-medium text-gray-800">
+              {facebookStatus.data?.pageName || "YachtBroker Marketing"}
+            </h4>
+            <p className="text-xs text-gray-500">
+              {facebookStatus.data?.type || "Page"} ·{" "}
+              {facebookStatus.data?.followers || "2.4k"} followers
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Connected{" "}
+              {new Date().toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </p>
+          </div>
+
+          <button
+            onClick={handleDisconnectFacebook}
+            className="text-sm text-gray-400 hover:text-red-500 transition-colors"
+          >
+            Disconnect
+          </button>
+        </div>
+
+        {/* Permissions */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(
+            facebookStatus.data?.permissions || [
+              "pages_manage_posts",
+              "pages_read_engagement",
+              "publish_to_groups",
+            ]
+          ).map((item: string) => (
+            <span
+              key={item}
+              className="rounded-full border border-[#65A30D]/40 bg-[#F7FCEB] px-3 py-1 text-xs text-[#65A30D]"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white flex justify-center px-4 py-8">
       <div className="w-full   space-y-6">
@@ -164,7 +337,7 @@ export default function SocialAccounts() {
               </div>
             </div>
 
-            {facebookStatus.isConnected && (
+            {(facebookStatus.isConnected || facebookPages.length > 0) && (
               <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
                 <CheckCircle2 size={14} />
                 Connected
@@ -172,72 +345,11 @@ export default function SocialAccounts() {
             )}
           </div>
 
-          {!facebookStatus.isConnected ? (
-            <div className="pt-2">
-              <button
-                onClick={handleConnectFacebook}
-                disabled={facebookStatus.isLoading}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#1877F2] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
-              >
-                <Link2 size={16} />
-                {facebookStatus.isLoading
-                  ? "Connecting..."
-                  : "Connect Facebook"}
-              </button>
-            </div>
-          ) : (
-            /* Connected Page */
-            <div className="rounded-xl border border-[#65A30D]/30 bg-[#FAFDF2] p-4 animate-in fade-in zoom-in duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-800">
-                    {facebookStatus.data?.pageName || "YachtBroker Marketing"}
-                  </h4>
-                  <p className="text-xs text-gray-500">
-                    {facebookStatus.data?.type || "Page"} ·{" "}
-                    {facebookStatus.data?.followers || "2.4k"} followers
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Connected{" "}
-                    {new Date().toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-
-                <button
-                  onClick={handleDisconnectFacebook}
-                  className="text-sm text-gray-400 hover:text-red-500 transition-colors"
-                >
-                  Disconnect
-                </button>
-              </div>
-
-              {/* Permissions */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                {(
-                  facebookStatus.data?.permissions || [
-                    "pages_manage_posts",
-                    "pages_read_engagement",
-                    "publish_to_groups",
-                  ]
-                ).map((item: string) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-[#65A30D]/40 bg-[#F7FCEB] px-3 py-1 text-xs text-[#65A30D]"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+          {renderFacebookContent()}
         </div>
 
         {/* ===== Instagram Card ===== */}
-        <div className="rounded-xl border border-[#65A30D]/40 p-5 space-y-4">
+        {/* <div className="rounded-xl border border-[#65A30D]/40 p-5 space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex gap-3">
               <div className="h-10 w-10 rounded-lg bg-pink-50 border border-pink-100 flex items-center justify-center">
@@ -308,7 +420,7 @@ export default function SocialAccounts() {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* ===== Help Box ===== */}
         <div className="rounded-xl border border-[#65A30D]/40 bg-[#F7FCEB] p-5 space-y-2">
