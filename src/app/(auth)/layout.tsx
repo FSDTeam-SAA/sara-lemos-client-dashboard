@@ -15,13 +15,13 @@ export default function RootLayout({
   return (
     <div className="relative min-h-screen w-full">
       {/* ===== Background Image ===== */}
-      <Image
+      {/* <Image
         src="/images/auth.jpg"
         alt="Auth Background"
         fill
         priority
         className="object-cover"
-      />
+      /> */}
 
       {/* ===== Dark Overlay ===== */}
       <div className="absolute inset-0 bg-black/40" />
