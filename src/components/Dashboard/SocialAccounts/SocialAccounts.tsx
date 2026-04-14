@@ -24,13 +24,10 @@ interface SocialStatus {
 }
 
 export interface FacebookPage {
-  id: string;
-  name: string;
-  picture?: {
-    data?: {
-      url?: string;
-    };
-  };
+  pageId: string;
+  pageName: string;
+  pageAccessToken?: string;
+  instagramBusinessId?: string | null;
 }
 
 export interface FacebookBusiness {
@@ -66,7 +63,8 @@ export default function SocialAccounts() {
         const userData = await getUserIdByUserData(userId);
         const fbBusinesses = userData?.data?.facebookBusinesses || [];
         const allPages = fbBusinesses.flatMap(
-          (biz: FacebookBusiness) => biz.pages || [],
+          (biz: FacebookBusiness) =>
+            biz.pages || [],
         );
         setFacebookPages(allPages);
       } catch (error) {
@@ -186,22 +184,13 @@ export default function SocialAccounts() {
               className="rounded-xl border border-[#65A30D]/30 bg-[#FAFDF2] p-4 flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                {page.picture?.data?.url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={page.picture.data.url}
-                    alt={page.name}
-                    className="w-10 h-10 rounded-full border border-gray-200"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200">
                     <Facebook className="text-blue-500 w-5 h-5" />
                   </div>
-                )}
                 <div>
-                  <h4 className="font-medium text-gray-800">{page.name}</h4>
+                  <h4 className="font-medium text-gray-800">Page Name: <span className="font-bold">{page.pageName}</span></h4>
                   <p className="text-xs text-gray-500 mt-0.5 shadow-sm inline-block bg-white px-2 py-[2px] rounded-md border border-gray-100">
-                    Page ID: {page.id}
+                    Page ID: {page.pageId}
                   </p>
                 </div>
               </div>
@@ -216,7 +205,7 @@ export default function SocialAccounts() {
             <button
               onClick={handleConnectFacebook}
               disabled={facebookStatus.isLoading}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors cursor-pointer"
             >
               {facebookStatus.isLoading
                 ? "Connecting..."

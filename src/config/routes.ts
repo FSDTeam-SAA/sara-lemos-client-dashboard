@@ -75,13 +75,13 @@ export const routes: RouteConfig[] = [
     title: "Social Media Accounts",
     subtitle: "Connect and manage your social media accounts",
   },
-  {
-    name: "Post Generator",
-    href: "/post-generator",
-    icon: SquarePlus,
-    title: "Post Generator",
-    subtitle: "Create professional post for social media content powered by AI",
-  },
+  // {
+  //   name: "Post Generator",
+  //   href: "/post-generator",
+  //   icon: SquarePlus,
+  //   title: "Post Generator",
+  //   subtitle: "Create professional post for social media content powered by AI",
+  // },
 
   {
     name: "Subscription",

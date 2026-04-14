@@ -126,7 +126,7 @@ export default function Login() {
 
           <div className="text-center mt-4">
             Don’t have an account?{" "}
-            <Link href={"/register"} className="text-[#343A40] font-semibold">
+            <Link href={"https://saralemos1978-website-brown.vercel.app/register"} className="text-[#343A40] font-semibold">
               Sign Up
             </Link>
           </div>
