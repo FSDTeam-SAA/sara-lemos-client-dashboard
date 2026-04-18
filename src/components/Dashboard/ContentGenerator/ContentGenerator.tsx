@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ChevronDown,
   Copy,
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { useGetUserIdByUserData } from "@/lib/hooks/useSocialAccounts";
 import { getUserIdByUserData } from "@/lib/services/socialAccountsService";
+import { useListing } from "@/lib/hooks/useListing";
 
 interface FacebookPage {
   pageId: string;
@@ -34,12 +35,6 @@ interface FacebookPage {
 }
 
 type Platform = "facebook" | "instagram";
-
-const listings = [
-  "Azimut Grande 35 Metri",
-  "Sunseeker 88 Yacht",
-  "Princess 30M",
-];
 
 const tones = [
   "Professional",
@@ -58,7 +53,21 @@ const postTypes = [
 ] as const;
 
 export default function ContentGenerator() {
-  const [listing, setListing] = useState(listings[0]);
+  const { data: listingData, isLoading: isListingLoading } = useListing();
+  const listings = useMemo(() => listingData?.listings ?? [], [listingData]);
+
+  const [selectedListingId, setSelectedListingId] = useState<string>("");
+
+  const selectedListing = useMemo(
+    () => listings.find((l) => l._id === selectedListingId) ?? null,
+    [listings, selectedListingId],
+  );
+
+  useEffect(() => {
+    if (!selectedListingId && listings.length > 0) {
+      setSelectedListingId(listings[0]._id);
+    }
+  }, [listings, selectedListingId]);
 
   // ✅ Keep only ONE platforms state (typed)
   const [platforms, setPlatforms] = useState<Platform[]>(["facebook"]);
@@ -363,22 +372,70 @@ export default function ContentGenerator() {
               <div className={label}>Select Listing</div>
               <div className="relative mt-2">
                 <select
-                  value={listing}
-                  onChange={(e) => setListing(e.target.value)}
+                  value={selectedListingId}
+                  onChange={(e) => setSelectedListingId(e.target.value)}
                   className={`${inputBase} appearance-none pr-10`}
+                  disabled={isListingLoading || listings.length === 0}
                 >
-                  {listings.map((l) => (
-                    <option
-                      key={l}
-                      value={l}
-                      className="text-[#65A30D] cursor-pointer"
-                    >
-                      {l}
-                    </option>
-                  ))}
+                  {isListingLoading ? (
+                    <option value="">Loading listings...</option>
+                  ) : listings.length === 0 ? (
+                    <option value="">No listings available</option>
+                  ) : (
+                    <>
+                      <option value="">Select a listing</option>
+                      {listings.map((l) => (
+                        <option
+                          key={l._id}
+                          value={l._id}
+                          className="text-[#65A30D] cursor-pointer"
+                        >
+                          {l.yachtName}
+                          {l.model ? ` — ${l.model}` : ""}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               </div>
+
+              {/* Selected Listing Preview */}
+              {selectedListing && (
+                <div className="mt-3 rounded-xl border border-[#DCE9C7] bg-[#F6FAF1] p-3 flex gap-3">
+                  {selectedListing.images?.[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={selectedListing.images[0]}
+                      alt={selectedListing.yachtName}
+                      className="h-16 w-20 rounded-md object-cover border border-[#DCE9C7] flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="h-16 w-20 rounded-md bg-gray-200 flex items-center justify-center text-[10px] text-gray-500 flex-shrink-0">
+                      No Image
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-[#2E5A2E] truncate">
+                      {selectedListing.yachtName}
+                    </div>
+                    <div className="text-[11px] text-gray-600 truncate">
+                      {selectedListing.yachtType}
+                      {selectedListing.model ? ` • ${selectedListing.model}` : ""}
+                    </div>
+                    <div className="text-[11px] text-gray-500 truncate">
+                      {selectedListing.location}
+                    </div>
+                    <div className="text-xs font-semibold text-[#65A30D] mt-0.5">
+                      {new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                        minimumFractionDigits: 0,
+                      }).format(selectedListing.Price)}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Campaign Selection (optional) */}
@@ -619,7 +676,7 @@ export default function ContentGenerator() {
 
             <div className="mt-3 text-[11px] text-gray-500">
               <span className="font-semibold text-[#2E5A2E]">Selected:</span>{" "}
-              {listing} • {tone} • {postType}
+              {selectedListing?.yachtName ?? "No listing"} • {tone} • {postType}
             </div>
           </div>
 
