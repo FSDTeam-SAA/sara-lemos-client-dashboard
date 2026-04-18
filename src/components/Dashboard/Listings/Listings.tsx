@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, PencilLine, Trash2 } from "lucide-react";
 import { ListingDetailModal } from "./ListingDetailModal";
+import { EditListingModal } from "./EditListingModal";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -15,12 +16,19 @@ export default function Listings() {
   const { data, isLoading, error } = useListing();
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editListing, setEditListing] = useState<Listing | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { mutateAsync: deleteListing } = useDeleteListing();
   const router = useRouter();
 
   const handleViewDetails = (listing: Listing) => {
     setSelectedListing(listing);
     setIsModalOpen(true);
+  };
+
+  const handleEdit = (listing: Listing) => {
+    setEditListing(listing);
+    setIsEditModalOpen(true);
   };
 
   if (isLoading) {
@@ -158,7 +166,7 @@ export default function Listings() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.push("/content-generator")}
+                        onClick={() => handleEdit(listing)}
                         className="cursor-pointer"
                       >
                         <PencilLine className="w-4 h-4 text-[#65A30D]" />
@@ -185,6 +193,12 @@ export default function Listings() {
         isOpen={isModalOpen}
         listing={selectedListing}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      <EditListingModal
+        isOpen={isEditModalOpen}
+        listing={editListing}
+        onClose={() => setIsEditModalOpen(false)}
       />
     </Card>
   );

@@ -110,3 +110,16 @@ export const deleteListing = async (listingId: string): Promise<void> => {
     },
   });
 };
+
+// update listing
+export const updateListing = async (
+  listingId: string,
+  data: FormData,
+): Promise<ListingsResponse> => {
+  const response = await axiosInstance.put<ListingsResponse>(
+    `/listing/${listingId}`,
+    data,
+  );
+
+  return response.data;
+};

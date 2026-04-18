@@ -1,11 +1,12 @@
 // src/lib/hooks/useListing.ts
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createListingManual,
   deleteListing,
   getAllListing,
   ListingsResponse,
+  updateListing,
   uploadListingManual,
 } from "../services/listingService";
 import { PDFExtractionResponse } from "../types/listing";
@@ -37,7 +38,26 @@ export function useCreateListingManual() {
 
 // delete listing
 export function useDeleteListing() {
+  const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
     mutationFn: (listingId) => deleteListing(listingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listing"] });
+    },
+  });
+}
+
+// update listing
+export function useUpdateListing() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    ListingsResponse,
+    Error,
+    { listingId: string; data: FormData }
+  >({
+    mutationFn: ({ listingId, data }) => updateListing(listingId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listing"] });
+    },
   });
 }
