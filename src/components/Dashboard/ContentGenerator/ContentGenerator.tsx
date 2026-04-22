@@ -91,10 +91,10 @@ export default function ContentGenerator() {
 
   const sessionUser = session?.user as
     | {
-        firstName?: string;
-        lastName?: string;
-        image?: string;
-      }
+      firstName?: string;
+      lastName?: string;
+      image?: string;
+    }
     | undefined;
 
   const userFirstName = sessionUser?.firstName;
@@ -209,14 +209,12 @@ export default function ContentGenerator() {
 
       if (modalMode === "schedule") {
         const selectedDateTime = new Date(`${scheduleDate}T${scheduleTime}:00`);
-        // Fix timezone difference (+6 hours)
-        selectedDateTime.setHours(selectedDateTime.getHours() + 6);
-        const scheduledTimeIso = selectedDateTime
-          .toISOString()
-          .replace(".000", "");
+
+        // No manual timezone fix ❌
+        const scheduledTimeIso = selectedDateTime.toISOString();
+
         payload.scheduledTime = scheduledTimeIso;
       }
-
       await handleFinalizePost(payload);
 
       toast.success(
@@ -471,11 +469,10 @@ export default function ContentGenerator() {
                 <button
                   type="button"
                   onClick={() => togglePlatform("facebook")}
-                  className={`${platformBtnBase} cursor-pointer ${
-                    platforms.includes("facebook")
-                      ? platformActive
-                      : platformInactive
-                  }`}
+                  className={`${platformBtnBase} cursor-pointer ${platforms.includes("facebook")
+                    ? platformActive
+                    : platformInactive
+                    }`}
                 >
                   <div className="items-center gap-2">
                     <Facebook className="h-6 w-6 text-blue-500 ml-6 mb-2" />
@@ -486,11 +483,10 @@ export default function ContentGenerator() {
                 <button
                   type="button"
                   onClick={() => togglePlatform("instagram")}
-                  className={`${platformBtnBase} cursor-pointer ${
-                    platforms.includes("instagram")
-                      ? platformActive
-                      : platformInactive
-                  }`}
+                  className={`${platformBtnBase} cursor-pointer ${platforms.includes("instagram")
+                    ? platformActive
+                    : platformInactive
+                    }`}
                 >
                   <div className="items-center gap-2">
                     <Instagram className="h-6 w-6 text-red-400 ml-6 mb-2" />
@@ -806,10 +802,9 @@ export default function ContentGenerator() {
                         key={page.pageId}
                         className={`
                           flex items-center p-4 border rounded-xl cursor-pointer transition-all
-                          ${
-                            selectedPageId === page.pageId
-                              ? "border-[#65A30D] bg-[#F0F6E7] ring-1 ring-[#65A30D]"
-                              : "border-gray-200 hover:border-gray-300 bg-white"
+                          ${selectedPageId === page.pageId
+                            ? "border-[#65A30D] bg-[#F0F6E7] ring-1 ring-[#65A30D]"
+                            : "border-gray-200 hover:border-gray-300 bg-white"
                           }
                         `}
                       >

@@ -87,8 +87,8 @@ export function ViewDraftModal({ post, isOpen, onClose }: ViewDraftModalProps) {
 
       if (actionFinalMode === "schedule") {
         const selectedDateTime = new Date(`${scheduleDate}T${scheduleTime}:00`);
-        // Fix timezone difference (+6 hours)
-        selectedDateTime.setHours(selectedDateTime.getHours() + 6);
+        // Fix timezone difference
+        selectedDateTime.setHours(selectedDateTime.getHours());
         const scheduledTimeIso = selectedDateTime
           .toISOString()
           .replace(".000", "");
