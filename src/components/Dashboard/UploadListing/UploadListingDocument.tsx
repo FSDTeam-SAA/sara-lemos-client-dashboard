@@ -2,42 +2,121 @@
 
 import { ArrowLeft, FileText, X, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useUploadListingManual } from "@/lib/hooks/useListing";
+// import { useUploadListingManual } from "@/lib/hooks/useListing";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getSession } from "next-auth/react";
+import { ExtractedYachtData } from "@/lib/types/listing";
 
 export default function UploadListingDocument() {
-  const { mutateAsync: uploadListingManual, isPending } =
-    useUploadListingManual();
   const router = useRouter();
 
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [progressMessage, setProgressMessage] = useState("");
+  const [partialData, setPartialData] = useState<Partial<ExtractedYachtData> | null>(null);
 
   const handleGenerate = async () => {
     if (!file) return;
+
+    setIsExtracting(true);
+    setProgressMessage("Starting extraction...");
+    setPartialData(null);
 
     const formData = new FormData();
     formData.append("pdf", file);
 
     try {
-      const response = await uploadListingManual(formData);
-      console.log("Upload successful:", response);
+      const session = await getSession();
+      const token = (session as { accessToken?: string })?.accessToken;
 
-      // Show success toast
-      toast.success("PDF extracted successfully! Redirecting to form...");
+      if (!token) {
+        toast.error("You must be logged in to perform this action.");
+        setIsExtracting(false);
+        return;
+      }
 
-      // Store extracted data in sessionStorage for the manual form to pick up
-      sessionStorage.setItem("pdfExtractedData", JSON.stringify(response));
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/listing/extract-pdf`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        },
+      );
 
-      // Navigate to manual form
-      setTimeout(() => {
-        router.push("/upload-listing/upload-listing-manual");
-      }, 1000);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("Failed to get reader from response body");
+      }
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        // SSE format is "event: name\ndata: json\n\n"
+        const lines = chunk.split("\n");
+
+        let currentEvent = "";
+
+        lines.forEach((line) => {
+          if (line.startsWith("event: ")) {
+            currentEvent = line.replace("event: ", "").trim();
+          } else if (line.startsWith("data: ")) {
+            try {
+              interface StreamData {
+                message?: string;
+                partialData?: Partial<ExtractedYachtData>;
+                listing?: { _id: string };
+              }
+              const data = JSON.parse(line.replace("data: ", "").trim()) as StreamData;
+
+              if (currentEvent === "status") {
+                setProgressMessage(data.message || "Processing...");
+              } else if (currentEvent === "chunk") {
+                if (data.partialData) {
+                  setPartialData(data.partialData);
+                  toast.info("Updating data fields...", { duration: 1000 });
+                }
+              } else if (currentEvent === "final") {
+                toast.success("Extraction complete! Redirecting...");
+                // Store extracted data if needed, but tutorial says it auto-saves
+                // Redirect to edit page using data.listing._id
+                if (data.listing && data.listing._id) {
+                  router.push(`/listings/edit/${data.listing._id}`);
+                } else {
+                  // Fallback to manual form if no listing ID
+                  sessionStorage.setItem(
+                    "pdfExtractedData",
+                    JSON.stringify(data),
+                  );
+                  router.push("/upload-listing/upload-listing-manual");
+                }
+              } else if (currentEvent === "error") {
+                toast.error(data.message || "An error occurred during extraction");
+                setIsExtracting(false);
+              }
+            } catch (e) {
+              console.error("Error parsing stream data:", e);
+            }
+          }
+        });
+      }
     } catch (error) {
       console.error("Upload failed:", error);
       toast.error("Failed to extract PDF. Please try again.");
+      setIsExtracting(false);
     }
   };
 
@@ -104,19 +183,18 @@ export default function UploadListingDocument() {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`transition-all duration-200 rounded-2xl border-2 border-dashed ${
-          isDragging
+        className={`transition-all duration-200 rounded-2xl border-2 border-dashed ${isDragging
             ? "border-[#65A30D] bg-[#65A30D0D]"
             : "border-gray-200 bg-white"
-        } shadow-sm`}
+          } shadow-sm`}
       >
         <div className="px-6 py-10 md:px-12 md:py-14">
           <div className="flex flex-col items-center text-center">
             {/* Icon */}
             <div
-              className={`w-16 h-16 rounded-2xl ${isPending ? "bg-gray-100" : "bg-[#65A30D1A]"} flex items-center justify-center mb-5`}
+              className={`w-16 h-16 rounded-2xl ${isExtracting ? "bg-gray-100" : "bg-[#65A30D1A]"} flex items-center justify-center mb-5`}
             >
-              {isPending ? (
+              {isExtracting ? (
                 <div className="w-8 h-8 border-4 border-[#65A30D] border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <FileText className="text-[#65A30D]" size={28} />
@@ -125,19 +203,29 @@ export default function UploadListingDocument() {
 
             {/* Text */}
             <h2 className="text-xl font-bold text-[#65A30D] mb-2">
-              {isPending
-                ? "Processing your file..."
+              {isExtracting
+                ? progressMessage || "Processing your file..."
                 : file
                   ? file.name
                   : "Drop your file here"}
             </h2>
             <p className="text-xs text-[#6C757D] mb-6">
-              {isPending
+              {isExtracting
                 ? "This may take a few moments"
                 : file
                   ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
                   : "or click to browse from your computer"}
             </p>
+            {isExtracting && partialData && (
+              <div className="mb-6 p-4 rounded-xl bg-[#F6FAF1] border border-[#DCE9C7] max-w-sm w-full">
+                <p className="text-[10px] font-bold text-[#65A30D] uppercase tracking-wider mb-2">Extracted Preview</p>
+                <div className="text-left space-y-1">
+                  {partialData.yachtName && <p className="text-xs text-gray-700"><strong>Name:</strong> {partialData.yachtName}</p>}
+                  {partialData.builder && <p className="text-xs text-gray-700"><strong>Builder:</strong> {partialData.builder}</p>}
+                  {partialData.price && <p className="text-xs text-gray-700"><strong>Price:</strong> {partialData.price}</p>}
+                </div>
+              </div>
+            )}
 
             {/* Hidden Input */}
             <input
@@ -146,13 +234,13 @@ export default function UploadListingDocument() {
               className="hidden"
               accept=".pdf,.doc,.docx"
               onChange={handleFileChange}
-              disabled={isPending}
+              disabled={isExtracting}
             />
 
             {/* Buttons */}
             <div className="flex flex-col justify-center sm:flex-row gap-3 w-full max-w-md">
               <div>
-                {!isPending && !file && (
+                {!isExtracting && !file && (
                   <label
                     htmlFor="file-upload"
                     className="bg-[#65A30D] hover:bg-[#5a8f0c] text-white transition text-sm font-semibold px-8 py-2.5 rounded-lg cursor-pointer text-center"
@@ -162,7 +250,7 @@ export default function UploadListingDocument() {
                 )}
               </div>
 
-              {file && !isPending && (
+              {file && !isExtracting && (
                 <>
                   <button
                     onClick={handleGenerate}

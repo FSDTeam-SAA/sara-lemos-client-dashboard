@@ -288,6 +288,17 @@ export default function ContentGenerator() {
       platforms,
     };
 
+    if (selectedListing) {
+      payload.listingData = {
+        yachtName: selectedListing.yachtName,
+        price: selectedListing.Price,
+        length: selectedListing.lengthOverall
+          ? `${selectedListing.lengthOverall.value} ${selectedListing.lengthOverall.unit}`
+          : undefined,
+        builder: selectedListing.builder,
+      };
+    }
+
     if (includeContact && (contactPhone.trim() || contactEmail.trim())) {
       payload.contactInfo = {};
       if (contactPhone.trim()) payload.contactInfo.phone = contactPhone.trim();

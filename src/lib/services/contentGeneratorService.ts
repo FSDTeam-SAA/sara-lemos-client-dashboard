@@ -10,6 +10,12 @@ export interface GenerateContentPayload {
     phone?: string;
     email?: string;
   };
+  listingData?: {
+    yachtName?: string;
+    price?: number | string;
+    length?: string;
+    builder?: string;
+  };
 }
 
 export interface FacebookContent {
