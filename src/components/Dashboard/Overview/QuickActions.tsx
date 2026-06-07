@@ -13,10 +13,10 @@ export default function QuickActions() {
     "hover:border-[#65A30D] hover:bg-[#F0F6E7]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#65A30D]/50";
 
   const iconWrap =
-    "shrink-0 rounded-full bg-[#F0F6E7] p-3 transition-transform group-hover:scale-[1.03]";
+    "shrink-0 rounded-4xl bg-[#F0F6E7] p-3 transition-transform group-hover:scale-[1.03]";
 
   const title =
-    "text-lg sm:text-xl lg:text-2xl font-bold text-[#0B3B36] leading-snug";
+    "text-lg sm:text-xl lg:text-xl font-bold text-[#0B3B36] leading-snug";
 
   const desc = "mt-1 text-xs sm:text-sm text-[#0B3B36]/80";
 
@@ -46,7 +46,7 @@ export default function QuickActions() {
           {/* ✅ Card 2 */}
           <Link href="/content-generator" className="block h-full">
             <div className={cardBase}>
-              <div className="shrink-0 rounded-full bg-[#3B82F61A] p-3 transition-transform group-hover:scale-[1.03]">
+              <div className="shrink-0 rounded-4xl bg-[#3B82F61A] p-3 transition-transform group-hover:scale-[1.03]">
                 <Zap className="text-[#3B82F6] size-5 sm:size-6" />
               </div>
 
@@ -60,7 +60,7 @@ export default function QuickActions() {
           {/* ✅ Card 3 */}
           <Link href="/saved-drafts" className="block h-full">
             <div className={cardBase}>
-              <div className="shrink-0 rounded-full bg-[#F59E0B1A] p-3 transition-transform group-hover:scale-[1.03]">
+              <div className="shrink-0 rounded-4xl bg-[#F59E0B1A] p-3 transition-transform group-hover:scale-[1.03]">
                 <Clock3 className="text-[#F59E0B] size-5 sm:size-6" />
               </div>
 
@@ -77,7 +77,7 @@ export default function QuickActions() {
             className={`${cardBase} text-left cursor-pointer`}
             onClick={() => setIsHelpModalOpen(true)}
           >
-            <div className="bg-[#610BF51A] rounded-xl p-3 sm:p-4 shrink-0 flex items-center justify-center">
+            <div className="bg-[#610BF51A] rounded-4xl p-3 sm:p-4 shrink-0 flex items-center justify-center">
               <PhoneCall className="text-[#610BF5] size-5 sm:size-6" />
             </div>
 

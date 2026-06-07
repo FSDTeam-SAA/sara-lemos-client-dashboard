@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Montserrat, Poppins } from "next/font/google";
+import { Geist, Geist_Mono, Montserrat, Poppins, Fraunces } from "next/font/google";
 import "./globals.css";
 
 import { Toaster } from "sonner";
@@ -26,6 +26,11 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+});
+
 export const metadata: Metadata = {
   title: "Client Dashboard.",
   description:
@@ -40,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${montserrat.variable} ${geistMono.variable} ${poppins.variable} font-poppins antialiased`}
+        className={`${geistSans.variable} ${montserrat.variable} ${geistMono.variable} ${poppins.variable} ${fraunces.variable} font-poppins antialiased`}
       >
         <MainProviders>
           <Provider> {children} </Provider>
