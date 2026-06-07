@@ -49,7 +49,7 @@ export default function RecentOverview({ listings = [] }: RecentOverviewProps) {
             Recent Listings
           </CardTitle>
           <Link
-            href={"/dashboard/listings"}
+            href={"/listings"}
             className="text-sm text-[#65A30D] cursor-pointer hover:underline"
           >
             View All
