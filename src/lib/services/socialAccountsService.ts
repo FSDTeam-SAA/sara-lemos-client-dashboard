@@ -31,3 +31,13 @@ export const getAllSubscriptionPlans = async () => {
     throw error;
   }
 };
+
+// Disconnect Social Account (specific pageId or all)
+export const disconnectSocialAccount = async (pageId?: string) => {
+  try {
+    const response = await axiosInstance.post("/connect/disconnect", { pageId });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

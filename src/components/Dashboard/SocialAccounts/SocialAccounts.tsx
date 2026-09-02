@@ -1,9 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import { ShieldCheck, Facebook, CheckCircle2, Link2 } from "lucide-react";
+import { ShieldCheck, Facebook, CheckCircle2, Link2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   connectSocialAccounts,
+  disconnectSocialAccount,
   getUserIdByUserData,
 } from "@/lib/services/socialAccountsService";
 import { useSession } from "next-auth/react";
@@ -50,35 +51,88 @@ export default function SocialAccounts() {
   const { data: session } = useSession();
   const [facebookPages, setFacebookPages] = useState<FacebookPage[]>([]);
   const [isFetchingData, setIsFetchingData] = useState(true);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [disconnectingPageId, setDisconnectingPageId] = useState<string | null>(null);
+
+  const fetchSocialData = async () => {
+    const userId = session?.user?.id;
+    if (!userId) {
+      setIsFetchingData(false);
+      return;
+    }
+
+    try {
+      const userData = await getUserIdByUserData(userId);
+      const fbBusinesses = userData?.data?.facebookBusinesses || [];
+      const allPages = fbBusinesses.flatMap(
+        (biz: FacebookBusiness) => biz.pages || []
+      );
+      setFacebookPages(allPages);
+    } catch (error) {
+      console.error("Failed to fetch user social data", error);
+    } finally {
+      setIsFetchingData(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const userId = session?.user?.id;
-      if (!userId) {
-        setIsFetchingData(false);
-        return;
-      }
-
-      try {
-        const userData = await getUserIdByUserData(userId);
-        const fbBusinesses = userData?.data?.facebookBusinesses || [];
-        const allPages = fbBusinesses.flatMap(
-          (biz: FacebookBusiness) =>
-            biz.pages || [],
-        );
-        setFacebookPages(allPages);
-      } catch (error) {
-        console.error("Failed to fetch user social data", error);
-      } finally {
-        setIsFetchingData(false);
-      }
-    };
-
     if (session?.user) {
-      fetchUserData();
+      fetchSocialData();
     } else {
       setIsFetchingData(false);
     }
+  }, [session]);
+
+  // Handle URL redirect query parameters & popup communication
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get("status");
+      const message = params.get("message");
+
+      if (status) {
+        if (window.opener) {
+          try {
+            if (status === "success") {
+              window.opener.postMessage({ type: "SOCIAL_CONNECT_SUCCESS" }, "*");
+            } else {
+              window.opener.postMessage({ type: "SOCIAL_CONNECT_ERROR", message }, "*");
+            }
+            window.close();
+            return;
+          } catch (err) {
+            console.error("Error communicating with parent window:", err);
+          }
+        }
+
+        if (status === "success") {
+          toast.success("Facebook & Instagram accounts connected successfully!");
+          fetchSocialData();
+        } else if (status === "error") {
+          toast.error(message || "Failed to connect Facebook account");
+        }
+
+        // Clean query parameters from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
+
+  // Listen for popup postMessage events
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "SOCIAL_CONNECT_SUCCESS") {
+        toast.success("Facebook & Instagram accounts connected successfully!");
+        fetchSocialData();
+        setFacebookStatus((prev) => ({ ...prev, isLoading: false }));
+      } else if (event.data?.type === "SOCIAL_CONNECT_ERROR") {
+        toast.error(event.data?.message || "Failed to connect Facebook account");
+        setFacebookStatus((prev) => ({ ...prev, isLoading: false }));
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [session]);
 
   const handleConnectFacebook = async () => {
@@ -118,8 +172,46 @@ export default function SocialAccounts() {
     }
   };
 
+  const handleDisconnectPage = async (pageId?: string) => {
+    try {
+      if (pageId) {
+        setDisconnectingPageId(pageId);
+      } else {
+        setIsDisconnecting(true);
+      }
+
+      await disconnectSocialAccount(pageId);
+
+      toast.success(
+        pageId
+          ? "Facebook page disconnected successfully"
+          : "All social accounts disconnected successfully"
+      );
+
+      if (pageId) {
+        setFacebookPages((prev) => prev.filter((p) => p.pageId !== pageId));
+      } else {
+        setFacebookPages([]);
+        setFacebookStatus({ isConnected: false, isLoading: false, data: null });
+      }
+    } catch (error: unknown) {
+      console.error("Failed to disconnect account", error);
+      const msg =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response: { data: { error?: string; message?: string } } }).response
+              ?.data?.error ||
+            (error as { response: { data: { error?: string; message?: string } } }).response
+              ?.data?.message
+          : "Failed to disconnect account";
+      toast.error(msg);
+    } finally {
+      setIsDisconnecting(false);
+      setDisconnectingPageId(null);
+    }
+  };
+
   const handleDisconnectFacebook = () => {
-    setFacebookStatus({ isConnected: false, isLoading: false, data: null });
+    handleDisconnectPage();
   };
 
   const handleConnectInstagram = async () => {
@@ -185,8 +277,8 @@ export default function SocialAccounts() {
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200">
-                    <Facebook className="text-blue-500 w-5 h-5" />
-                  </div>
+                  <Facebook className="text-blue-500 w-5 h-5" />
+                </div>
                 <div>
                   <h4 className="font-medium text-gray-800">Page Name: <span className="font-bold">{page.pageName}</span></h4>
                   <p className="text-xs text-gray-500 mt-0.5 shadow-sm inline-block bg-white px-2 py-[2px] rounded-md border border-gray-100">
@@ -194,14 +286,34 @@ export default function SocialAccounts() {
                   </p>
                 </div>
               </div>
-              <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
-                <CheckCircle2 size={14} />
-                Connected
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
+                  <CheckCircle2 size={14} />
+                  Connected
+                </span>
+                <button
+                  onClick={() => handleDisconnectPage(page.pageId)}
+                  disabled={disconnectingPageId === page.pageId || isDisconnecting}
+                  className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-white bg-red-50 hover:bg-red-600 px-3 py-1.5 rounded-lg border border-red-200 hover:border-red-600 transition-all font-medium cursor-pointer disabled:opacity-50"
+                  title="Logout / Disconnect this page"
+                >
+                  <LogOut size={13} />
+                  {disconnectingPageId === page.pageId ? "Logging out..." : "Logout"}
+                </button>
+              </div>
             </div>
           ))}
 
-          <div className="mt-2 text-right">
+          <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+            <button
+              onClick={() => handleDisconnectPage()}
+              disabled={isDisconnecting}
+              className="inline-flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 font-medium hover:underline cursor-pointer disabled:opacity-50"
+            >
+              <LogOut size={13} />
+              {isDisconnecting ? "Logging out all..." : "Logout All Accounts"}
+            </button>
+
             <button
               onClick={handleConnectFacebook}
               disabled={facebookStatus.isLoading}
