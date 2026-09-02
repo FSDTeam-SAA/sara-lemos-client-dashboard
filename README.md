@@ -7,7 +7,7 @@ A premium, fully-featured **Next.js 16** dashboard designed for specialized yach
 ## ⚡ Key Features
 
 - **📊 Dashboard Overview:** Real-time summary of yacht listings and account activity.
-- **⚓ Listings Management:** Comprehensive interface to view, filter, and manage existing yacht listings.
+- **⚓ Listings Management:** Comprehensive interface to view, filter, and manage existing yacht listingss.
 - **📤 Easy Uploads:** Streamlined process for creating new yacht listings with multi-step support.
 - **💳 Subscription Management:** Integrated billing and plan management for platform users.
 - **⚙️ Advanced Settings:** Granular control over account preferences and profile information.
