@@ -61,10 +61,10 @@ export default function Listings() {
     });
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number, priceCurrency?: Listing["priceCurrency"]) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: priceCurrency === "€" || priceCurrency === "EUR" ? "EUR" : "USD",
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -91,7 +91,6 @@ export default function Listings() {
                 <th className="py-3 text-left font-medium">Model</th>
                 <th className="py-3 text-left font-medium">Type</th>
                 <th className="py-3 text-left font-medium">Price</th>
-                <th className="py-3 text-left font-medium">Location</th>
                 <th className="py-3 text-left font-medium">Created</th>
                 {/* <th className="py-3 text-left font-medium">Updated</th> */}
                 <th className="py-3 text-left font-medium">Status</th>
@@ -101,7 +100,7 @@ export default function Listings() {
             <tbody>
               {listings.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-4 text-center text-gray-500">
+                  <td colSpan={8} className="py-4 text-center text-gray-500">
                     No listings found
                   </td>
                 </tr>
@@ -133,9 +132,8 @@ export default function Listings() {
                     <td className="py-3">{listing.model}</td>
                     <td className="py-3">{listing.yachtType}</td>
                     <td className="py-3 font-medium">
-                      {formatPrice(listing.Price)}
+                      {formatPrice(listing.Price, listing.priceCurrency)}
                     </td>
-                    <td className="py-3">{listing.location}</td>
                     <td className="py-3 text-gray-500 text-xs">
                       {formatDate(listing.createdAt)}
                     </td>

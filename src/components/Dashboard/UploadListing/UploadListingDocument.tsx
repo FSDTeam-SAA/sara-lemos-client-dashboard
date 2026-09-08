@@ -2,7 +2,7 @@
 
 import { ArrowLeft, FileText, X, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useUpdateListing } from "@/lib/hooks/useListing";
+import { useCreateListingManual } from "@/lib/hooks/useListing";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -27,6 +27,15 @@ const inputBase =
   "w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:border-[#65A30D]/60 focus:ring-2 focus:ring-[#65A30D]/15";
 
 const labelBase = "text-[11px] font-medium text-gray-600 block mb-1";
+
+type AdditionalDetail = { section: string; label: string; value: string };
+
+const groupAdditionalDetails = (details: AdditionalDetail[]) =>
+  details.reduce<Record<string, AdditionalDetail[]>>((groups, detail) => {
+    const section = detail.section || "Additional details";
+    (groups[section] ||= []).push(detail);
+    return groups;
+  }, {});
 
 function isPositiveNumber(v: string) {
   if (v.trim() === "") return false;
@@ -67,7 +76,7 @@ export default function UploadListingDocument() {
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const updateListingMutation = useUpdateListing();
+  const createListingMutation = useCreateListingManual();
 
   // Cleanup preview URLs
   useEffect(() => {
@@ -101,6 +110,7 @@ export default function UploadListingDocument() {
 
     const priceRaw = listing.Price || listing.price || pData.Price || pData.price || "";
     const parsedPrice = parsePrice(String(priceRaw));
+    const savedCurrency = listing.priceCurrency || pData.priceCurrency;
 
     const lenVal = getVal("lengthOverall", "value");
     const lenUnit = getVal("lengthOverall", "unit");
@@ -126,7 +136,7 @@ export default function UploadListingDocument() {
       draft: draftVal ? String(draftVal) : "",
       draftUnit: (String(draftUnit).toLowerCase() === "m" ? "m" : "ft") as "ft" | "m",
       location: getVal("location"),
-      priceCurrency: parsedPrice.currency,
+      priceCurrency: savedCurrency === "€" || savedCurrency === "EUR" ? "€" : parsedPrice.currency,
       price: parsedPrice.value,
       guestCapacity: guestCap ? String(guestCap) : "",
       bathrooms: bathRooms ? String(bathRooms) : "",
@@ -140,6 +150,12 @@ export default function UploadListingDocument() {
       description: getVal("description"),
       engineMake: getVal("engineMake"),
       engineModel: getVal("engineModel"),
+      additionalDetails: Array.isArray(listing.additionalDetails)
+        ? listing.additionalDetails
+        : Array.isArray(pData.additionalDetails)
+          ? pData.additionalDetails
+          : [],
+      pdfExtractedText: listing.pdfExtractedText || pData.pdfExtractedText || "",
       existingImages: listing.images || [],
       newImages: [] as File[],
       newImagePreviews: [] as { file: File; url: string }[],
@@ -152,6 +168,28 @@ export default function UploadListingDocument() {
       return { ...prev, [key]: value };
     });
     setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const setAdditionalDetail = (
+    section: string,
+    detailIndex: number,
+    key: "label" | "value",
+    value: string,
+  ) => {
+    setFormState((prev: any) => {
+      if (!prev) return prev;
+      const details = [...(prev.additionalDetails || [])] as AdditionalDetail[];
+      let seenInSection = -1;
+      const absoluteIndex = details.findIndex((detail) => {
+        if ((detail.section || "Additional details") !== section) return false;
+        seenInSection += 1;
+        return seenInSection === detailIndex;
+      });
+
+      if (absoluteIndex === -1) return prev;
+      details[absoluteIndex] = { ...details[absoluteIndex], [key]: value };
+      return { ...prev, additionalDetails: details };
+    });
   };
 
   const handleDeleteExistingImage = (urlToRemove: string) => {
@@ -314,6 +352,7 @@ export default function UploadListingDocument() {
     fd.append("location", formState.location);
     fd.append("guestCapacity", String(Number(formState.guestCapacity)));
     fd.append("Price", String(Number(formState.price)));
+    fd.append("priceCurrency", formState.priceCurrency);
     fd.append("bathRooms", String(Number(formState.bathrooms)));
     fd.append("cabins", String(Number(formState.cabins)));
     fd.append("crew", String(Number(formState.crew)));
@@ -352,6 +391,8 @@ export default function UploadListingDocument() {
     fd.append("engineMake", formState.engineMake);
     fd.append("engineModel", formState.engineModel);
     fd.append("description", formState.description);
+    fd.append("additionalDetails", JSON.stringify(formState.additionalDetails || []));
+    fd.append("pdfExtractedText", formState.pdfExtractedText || "");
     fd.append("isActive", "true");
 
     fd.append("images", JSON.stringify(formState.existingImages));
@@ -359,11 +400,8 @@ export default function UploadListingDocument() {
 
     setIsSubmitting(true);
     try {
-      await updateListingMutation.mutateAsync({
-        listingId: extractedListing._id,
-        data: fd,
-      });
-      toast.success("Listing saved and updated successfully ✅");
+      await createListingMutation.mutateAsync(fd);
+      toast.success("Listing saved successfully ✅");
       router.push("/listings");
     } catch (err) {
       console.error("❌ SUBMISSION FAILED:", err);
@@ -911,6 +949,65 @@ export default function UploadListingDocument() {
               </div>
             </div>
 
+            {formState.additionalDetails?.length > 0 && (
+              <section className="border-t border-gray-100 pt-6">
+                <div className="mb-4">
+                  <h2 className="text-sm font-bold text-gray-900">Additional PDF Specifications</h2>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Details extracted from the PDF that do not belong to the main listing fields.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {Object.entries(
+                    groupAdditionalDetails(formState.additionalDetails as AdditionalDetail[]),
+                  ).map(([section, details]) => (
+                    <div key={section} className="overflow-hidden rounded-xl border border-gray-200">
+                      <h3 className="bg-[#F6FAF1] px-4 py-2 text-xs font-bold text-[#4D7C0F]">
+                        {section}
+                      </h3>
+                      <div className="divide-y divide-gray-100">
+                        {details.map((detail, index) => (
+                          <div key={`${detail.label}-${index}`} className="grid grid-cols-2 gap-3 px-4 py-2">
+                            <input
+                              className="min-w-0 border-0 bg-transparent p-0 text-xs font-medium text-gray-500 outline-none focus:text-gray-800"
+                              aria-label={`${section} specification label`}
+                              value={detail.label}
+                              onChange={(event) =>
+                                setAdditionalDetail(section, index, "label", event.target.value)
+                              }
+                            />
+                            <input
+                              className="min-w-0 border-0 bg-transparent p-0 text-xs text-gray-800 outline-none focus:ring-0"
+                              aria-label={`${detail.label} value`}
+                              value={detail.value}
+                              onChange={(event) =>
+                                setAdditionalDetail(section, index, "value", event.target.value)
+                              }
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section className="border-t border-gray-100 pt-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-bold text-gray-900">All Extracted PDF Text</h2>
+                <p className="mt-1 text-xs text-gray-500">
+                  The complete text detected in the PDF. It is auto-filled, editable, and saved with this listing.
+                </p>
+              </div>
+              <textarea
+                className="min-h-72 w-full rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs leading-6 text-gray-800 outline-none focus:border-[#65A30D]/60 focus:ring-2 focus:ring-[#65A30D]/15"
+                value={formState.pdfExtractedText}
+                onChange={(event) => setField("pdfExtractedText", event.target.value)}
+                placeholder="PDF text will appear here after extraction."
+              />
+            </section>
+
             {/* Yacht Images Section */}
             <div className="mt-6 border-t border-gray-100 pt-6">
               <label className={labelBase + " text-sm font-bold text-gray-900 mb-4"}>Yacht Images</label>
@@ -1280,4 +1377,3 @@ export default function UploadListingDocument() {
     </div>
   );
 }
-

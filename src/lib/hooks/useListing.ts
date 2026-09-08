@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createListingManual,
+  CreateListingResponse,
   deleteListing,
   getAllListing,
   ListingsResponse,
@@ -31,8 +32,12 @@ export function useUploadListingManual() {
 
 // Create Listing Manual
 export function useCreateListingManual() {
-  return useMutation<ListingsResponse, Error, FormData>({
+  const queryClient = useQueryClient();
+  return useMutation<CreateListingResponse, Error, FormData>({
     mutationFn: (data) => createListingManual(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listing"] });
+    },
   });
 }
 

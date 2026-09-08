@@ -1,6 +1,6 @@
 // src/lib/services/listingService.ts
 import axiosInstance from "../instance/axios-instance";
-import { PDFExtractionResponse } from "../types/listing";
+import { AdditionalListingDetail, PDFExtractionResponse } from "../types/listing";
 
 export interface Listing {
   _id: string;
@@ -11,6 +11,7 @@ export interface Listing {
   location: string;
   guestCapacity: number;
   Price: number;
+  priceCurrency?: "$" | "€" | "USD" | "EUR";
   bathRooms: number;
   bedRooms: number;
   cabins: number;
@@ -41,6 +42,8 @@ export interface Listing {
   engineModel: string;
   images: string[];
   description: string;
+  additionalDetails?: AdditionalListingDetail[];
+  pdfExtractedText?: string;
   createdBy: string;
   isActive: boolean;
   createdAt: string;
@@ -60,6 +63,11 @@ export interface ListingsResponse {
   success: boolean;
   listings: Listing[];
   pagination: Pagination;
+}
+
+export interface CreateListingResponse {
+  success: boolean;
+  listing: Listing;
 }
 
 //  Get All Listing
@@ -90,8 +98,8 @@ export const uploadListingManual = async (
 
 export const createListingManual = async (
   data: FormData,
-): Promise<ListingsResponse> => {
-  const response = await axiosInstance.post<ListingsResponse>(
+): Promise<CreateListingResponse> => {
+  const response = await axiosInstance.post<CreateListingResponse>(
     "/listing/create",
     data,
     {
