@@ -33,6 +33,13 @@ import { toast } from "sonner";
 import { useRef } from "react";
 import NextImage from "next/image";
 
+const groupAdditionalDetails = (details: NonNullable<Listing["additionalDetails"]>) =>
+  details.reduce<Record<string, NonNullable<Listing["additionalDetails"]>>>((groups, detail) => {
+    const section = detail.section || "Additional details";
+    (groups[section] ||= []).push(detail);
+    return groups;
+  }, {});
+
 interface ListingDetailModalProps {
   listing: Listing | null;
   isOpen: boolean;
@@ -132,7 +139,7 @@ export function ListingDetailModal({
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: listing.priceCurrency === "€" || listing.priceCurrency === "EUR" ? "EUR" : "USD",
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -146,6 +153,7 @@ export function ListingDetailModal({
     setActiveImageIndex((prev) => (prev + 1) % images.length);
   const prevImage = () =>
     setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  const additionalDetails = listing.additionalDetails || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -396,6 +404,42 @@ export function ListingDetailModal({
                       ),
                   )}
               </div>
+
+              {additionalDetails.length > 0 && (
+                <section>
+                  <SectionHeader Icon={Sparkles} label="Additional Specifications" />
+                  <div className="mt-3 space-y-4">
+                    {Object.entries(groupAdditionalDetails(additionalDetails)).map(
+                      ([section, details]) => (
+                        <div key={section} className="overflow-hidden rounded-xl border border-gray-100">
+                          <h3 className="bg-[#F6FAF1] px-4 py-2 text-xs font-bold text-[#4D7C0F]">
+                            {section}
+                          </h3>
+                          <dl className="divide-y divide-gray-100">
+                            {details.map((detail, index) => (
+                              <div key={`${detail.label}-${index}`} className="grid grid-cols-2 gap-3 px-4 py-2 text-xs">
+                                <dt className="font-medium text-gray-500">{detail.label}</dt>
+                                <dd className="text-gray-800">{detail.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {listing.pdfExtractedText && (
+                <details className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                  <summary className="cursor-pointer text-sm font-semibold text-gray-800">
+                    Complete Extracted PDF Text
+                  </summary>
+                  <pre className="mt-3 max-h-80 overflow-y-auto whitespace-pre-wrap font-sans text-xs leading-6 text-gray-600">
+                    {listing.pdfExtractedText}
+                  </pre>
+                </details>
+              )}
             </div>
 
             {/* Download Button */}
@@ -574,6 +618,21 @@ export function ListingDetailModal({
                   "Indulge in the finest maritime craftsmanship. This vessel offers an unparalleled experience of luxury and performance."}
               </div>
             </div>
+
+            {additionalDetails.length > 0 && (
+              <div className="mb-10">
+                <SectionHeader Icon={Sparkles} label="Additional Specifications" />
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {additionalDetails.map((detail, index) => (
+                    <PaperSpec
+                      key={`${detail.section}-${detail.label}-${index}`}
+                      label={`${detail.section}: ${detail.label}`}
+                      value={detail.value}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Image Gallery Grid */}
             <div>
