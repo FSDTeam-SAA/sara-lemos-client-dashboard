@@ -7,6 +7,12 @@ export interface PDFExtractionResponse {
   images: string[];
 }
 
+export interface AdditionalListingDetail {
+  section: string;
+  label: string;
+  value: string;
+}
+
 export interface ExtractedYachtData {
   yachtName: string;
   builder: string;
@@ -15,6 +21,7 @@ export interface ExtractedYachtData {
   location: string;
   guestCapacity: number | string;
   price: string;
+  priceCurrency?: "$" | "€" | "USD" | "EUR";
   bathRooms: string;
   bedRooms: string;
   cabins: string;
@@ -44,4 +51,6 @@ export interface ExtractedYachtData {
   engineMake: string;
   engineModel: string;
   description: string;
+  additionalDetails?: AdditionalListingDetail[];
+  pdfExtractedText?: string;
 }
